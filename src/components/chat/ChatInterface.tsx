@@ -14,6 +14,7 @@ import { es } from "date-fns/locale";
 import EmojiPicker from 'emoji-picker-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/use-toast";
+import { sendMessage } from "@/utils/api";
 
 export const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -69,7 +70,6 @@ export const ChatInterface = () => {
 
   const handleOnboarding = async (name: string, phone: string) => {
     try {
-      // First check if the agency exists
       const { data: agency, error: agencyError } = await supabase
         .from("agencies")
         .select("id")
@@ -172,7 +172,7 @@ export const ChatInterface = () => {
     }
   }, [messages]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!inputValue.trim()) return;
 
     const newMessage: Message = {
@@ -186,16 +186,31 @@ export const ChatInterface = () => {
     setMessages((prev) => [...prev, newMessage]);
     setInputValue("");
 
-    setTimeout(() => {
+    try {
+      const response = await sendMessage(
+        inputValue,
+        "2941bb4a-cdf4-4677-8e0b-d1def860728d", // chatbot ID
+        currentLead?.id
+      );
+
       const agentResponse: Message = {
         id: (Date.now() + 1).toString(),
-        content: "Gracias por tu mensaje. ¿En qué más puedo ayudarte?",
+        content: response.response,
         type: "text",
         timestamp: Date.now(),
         sender: "agent",
+        metadata: response.metadata
       };
+
       setMessages((prev) => [...prev, agentResponse]);
-    }, 1000);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo enviar el mensaje. Por favor intenta nuevamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -221,16 +236,31 @@ export const ChatInterface = () => {
     setIsRecording(false);
 
     if (transcription) {
-      setTimeout(() => {
+      try {
+        const response = await sendMessage(
+          transcription,
+          "2941bb4a-cdf4-4677-8e0b-d1def860728d",
+          currentLead?.id
+        );
+
         const agentResponse: Message = {
           id: (Date.now() + 1).toString(),
-          content: `He recibido tu mensaje de voz que dice: "${transcription}". ¿En qué puedo ayudarte?`,
+          content: response.response,
           type: "text",
           timestamp: Date.now(),
           sender: "agent",
+          metadata: response.metadata
         };
+
         setMessages((prev) => [...prev, agentResponse]);
-      }, 1000);
+      } catch (error) {
+        console.error("Error sending transcribed message:", error);
+        toast({
+          title: "Error",
+          description: "No se pudo procesar el mensaje de voz. Por favor intenta nuevamente.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
