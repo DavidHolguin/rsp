@@ -21,11 +21,19 @@ export default {
         foreground: "hsl(var(--foreground))",
         chat: {
           bubble: {
-            user: "#DCF8C6",
-            agent: "#E8F8F5",
+            user: "#E7FFDB",
+            agent: "#FFFFFF",
             dark: {
               user: "#005C4B",
               agent: "#1F2C34"
+            }
+          },
+          audio: {
+            waveform: "#25D366",
+            background: "#FFFFFF",
+            dark: {
+              waveform: "#00A884",
+              background: "#1F2C34"
             }
           }
         },

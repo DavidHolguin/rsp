@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MoreVertical, Send, Smile, Clock } from "lucide-react";
+import { MoreVertical, Send, Smile } from "lucide-react";
 import { ChatBubble } from "./ChatBubble";
 import { AudioRecorderWhatsApp } from "./AudioRecorderWhatsApp";
 import { ChatSidebar } from "./ChatSidebar";
@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
-import { formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import EmojiPicker from 'emoji-picker-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
@@ -168,7 +168,7 @@ export const ChatInterface = () => {
                   alt={chatbot.name || "Chatbot"} 
                   className="w-10 h-10 rounded-full"
                 />
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#00A884] rounded-full border-2 border-[#1F2C34]" />
+                <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-[#00A884] rounded-full border-2 border-[#1F2C34]" />
               </>
             )}
           </div>
@@ -178,12 +178,8 @@ export const ChatInterface = () => {
             </h1>
             {lastMessageTime && (
               <div className="flex items-center gap-1 text-xs text-gray-400">
-                <Clock className="w-3 h-3" />
                 <span>
-                  {formatDistanceToNow(lastMessageTime, { 
-                    addSuffix: true,
-                    locale: es,
-                  }).replace('hace', 'Hace')}
+                  {format(lastMessageTime, "h:mm a", { locale: es })}
                 </span>
               </div>
             )}
