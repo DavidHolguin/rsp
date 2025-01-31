@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Sun, Moon } from "lucide-react";
+import { Send, Sun, Moon, Menu } from "lucide-react";
 import { ChatBubble } from "./ChatBubble";
 import { AudioRecorder } from "./AudioRecorder";
+import { ChatSidebar } from "./ChatSidebar";
 import { Message } from "@/types/chat";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ export const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isInitialized, setIsInitialized] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme, setTheme } = useTheme();
 
@@ -114,7 +116,17 @@ export const ChatInterface = () => {
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
       <div className="flex items-center justify-between p-4 bg-primary dark:bg-gray-800 text-white">
-        <h1 className="text-lg font-semibold">Asistente Virtual</h1>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:text-white/90"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <h1 className="text-lg font-semibold">Asistente Virtual</h1>
+        </div>
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -163,6 +175,8 @@ export const ChatInterface = () => {
           </Button>
         </div>
       </div>
+
+      <ChatSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </div>
   );
 };
