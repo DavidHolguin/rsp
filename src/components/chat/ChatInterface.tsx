@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Sun, Moon, Menu } from "lucide-react";
+import { Send, Sun, Moon, Menu, MessageSquarePlus } from "lucide-react";
 import { ChatBubble } from "./ChatBubble";
 import { AudioRecorder } from "./AudioRecorder";
 import { ChatSidebar } from "./ChatSidebar";
@@ -138,7 +138,7 @@ export const ChatInterface = () => {
     }
   };
 
-  const handleAudioRecorded = (blob: Blob) => {
+  const handleAudioRecorded = async (blob: Blob) => {
     console.log("Audio recorded:", blob);
     
     const newMessage: Message = {
@@ -183,7 +183,9 @@ export const ChatInterface = () => {
               <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-primary dark:border-gray-800"></div>
             </div>
             <div className="flex flex-col items-start">
-              <h1 className="text-lg font-semibold">{chatbot?.name || "Asistente Virtual"}</h1>
+              <h1 className="text-lg font-semibold truncate max-w-[200px]">
+                {chatbot?.name || "Asistente Virtual"}
+              </h1>
               {lastMessageTime && (
                 <span className="text-xs text-white/70">
                   Último mensaje: {lastMessageTime.toLocaleString()}

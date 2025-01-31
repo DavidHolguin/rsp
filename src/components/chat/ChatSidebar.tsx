@@ -4,7 +4,7 @@ import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -76,63 +76,45 @@ export const ChatSidebar = ({ open, onClose }: ChatSidebarProps) => {
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent side="left" className="w-[300px] sm:w-[400px] p-0">
         <div className="flex flex-col h-full bg-background">
-          <SheetHeader className="p-4 border-b">
-            <div className="flex items-center justify-between">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Settings className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <DropdownMenuItem>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Términos y Condiciones
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Shield className="mr-2 h-4 w-4" />
-                    Políticas de Uso
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-          </SheetHeader>
-
-          <ScrollArea className="flex-1 px-4 py-2">
+          <div className="p-4 flex justify-end">
             <Button
               variant="ghost"
-              className="w-full justify-start gap-2 mb-4"
-              onClick={() => {
-                // Handle new conversation
-                onClose();
-              }}
+              size="icon"
+              onClick={onClose}
             >
-              <MessageSquarePlus className="h-5 w-5" />
-              <span>Nueva Conversación</span>
+              <X className="h-5 w-5" />
             </Button>
+          </div>
 
-            <div className="space-y-2">
-              {conversations.map((conversation) => (
-                <Button
-                  key={conversation.id}
-                  variant="ghost"
-                  className="w-full justify-start text-left"
-                >
-                  <span className="truncate">
-                    {conversation.title || "Conversación sin título"}
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-auto">
-                    {new Date(conversation.created_at).toLocaleDateString()}
-                  </span>
-                </Button>
-              ))}
+          <ScrollArea className="flex-1 px-4">
+            <div className="space-y-4">
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-2"
+                onClick={() => {
+                  onClose();
+                }}
+              >
+                <MessageSquarePlus className="h-5 w-5" />
+                <span>Nueva Conversación</span>
+              </Button>
+
+              <div className="space-y-2">
+                {conversations.map((conversation) => (
+                  <Button
+                    key={conversation.id}
+                    variant="ghost"
+                    className="w-full justify-start text-left"
+                  >
+                    <span className="truncate">
+                      {conversation.title || "Conversación sin título"}
+                    </span>
+                    <span className="text-xs text-muted-foreground ml-auto">
+                      {new Date(conversation.created_at).toLocaleDateString()}
+                    </span>
+                  </Button>
+                ))}
+              </div>
             </div>
           </ScrollArea>
 
@@ -158,6 +140,23 @@ export const ChatSidebar = ({ open, onClose }: ChatSidebarProps) => {
                     {agency.contact_email}
                   </p>
                 </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <Settings className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>
+                      <FileText className="mr-2 h-4 w-4" />
+                      Términos y Condiciones
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Shield className="mr-2 h-4 w-4" />
+                      Políticas de Uso
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           )}
