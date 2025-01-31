@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Message } from "@/types/chat";
 import { useEffect, useState, useRef } from "react";
-import { Play, Pause } from "lucide-react";
+import { Play, Pause, Check } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ImageGallery } from "./ImageGallery";
@@ -93,17 +93,15 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
       <div className={cn(
         "flex items-center gap-3 min-w-[280px] p-2 rounded-lg",
         isAgent 
-          ? "bg-chat-audio-background dark:bg-chat-audio-dark-background" 
-          : "bg-chat-audio-background dark:bg-chat-audio-dark-background"
+          ? "bg-chat-bubble-dark-agent" 
+          : "bg-chat-bubble-dark-user"
       )}>
         <audio ref={audioRef} src={message.content} className="hidden" />
         <button
           onClick={toggleAudio}
           className={cn(
             "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
-            isAgent 
-              ? "bg-chat-audio-waveform text-white hover:bg-chat-audio-waveform/90" 
-              : "bg-chat-audio-waveform text-white hover:bg-chat-audio-waveform/90"
+            "bg-chat-audio-waveform dark:bg-chat-audio-dark-waveform text-white hover:opacity-90"
           )}
         >
           {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-1" />}
@@ -112,18 +110,18 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
         <div className="flex-1">
           <div
             ref={progressRef}
-            className="h-[4px] bg-gray-200 dark:bg-gray-600 rounded-full cursor-pointer overflow-hidden"
+            className="h-[4px] bg-gray-600/50 dark:bg-gray-600/30 rounded-full cursor-pointer overflow-hidden"
             onClick={handleProgressClick}
           >
             <div
               className={cn(
                 "h-full rounded-full transition-all",
-                isAgent ? "bg-chat-audio-waveform" : "bg-chat-audio-waveform"
+                "bg-chat-audio-waveform dark:bg-chat-audio-dark-waveform"
               )}
               style={{ width: `${(currentTime / duration) * 100}%` }}
             />
           </div>
-          <div className="flex justify-between text-xs mt-1 text-gray-500">
+          <div className="flex justify-between text-xs mt-1 text-gray-200">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
@@ -168,6 +166,10 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
               <span className="text-[11px] text-[#667781] dark:text-gray-400">
                 {formatMessageTime(message.timestamp)}
               </span>
+              <div className="flex -space-x-1">
+                <Check className="w-3 h-3 text-[#667781] dark:text-gray-400" />
+                <Check className="w-3 h-3 text-[#667781] dark:text-gray-400" />
+              </div>
             </div>
           </div>
         )}
@@ -178,6 +180,10 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
               <span className="text-[11px] text-[#667781] dark:text-gray-400">
                 {formatMessageTime(message.timestamp)}
               </span>
+              <div className="flex -space-x-1">
+                <Check className="w-3 h-3 text-[#667781] dark:text-gray-400" />
+                <Check className="w-3 h-3 text-[#667781] dark:text-gray-400" />
+              </div>
             </div>
           </div>
         )}
