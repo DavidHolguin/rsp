@@ -1,4 +1,4 @@
-export type MessageType = "text" | "image" | "audio" | "qr";
+export type MessageType = "text" | "image" | "audio" | "gallery" | "location" | "qr";
 
 export interface Message {
   id: string;
@@ -6,6 +6,36 @@ export interface Message {
   type: MessageType;
   timestamp: number;
   sender: "user" | "agent";
+  metadata?: {
+    gallery?: {
+      images: {
+        url: string;
+        description?: string;
+        name?: string;
+      }[];
+      layout?: "grid" | "carousel";
+    };
+    location?: {
+      address: string;
+      latitude: number;
+      longitude: number;
+      name?: string;
+    };
+    quickReplies?: {
+      text: string;
+      action: string;
+    }[];
+    qr?: {
+      data: string;
+      title?: string;
+    };
+    actions?: {
+      type: "link" | "button";
+      text: string;
+      url?: string;
+      action?: string;
+    }[];
+  };
 }
 
 export interface ChatAnalytics {

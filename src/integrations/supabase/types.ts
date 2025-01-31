@@ -127,6 +127,41 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_galleries: {
+        Row: {
+          asset_id: string
+          asset_type: string
+          created_at: string | null
+          gallery_id: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          asset_id: string
+          asset_type: string
+          created_at?: string | null
+          gallery_id?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          asset_id?: string
+          asset_type?: string
+          created_at?: string | null
+          gallery_id?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_galleries_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "image_galleries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_engines: {
         Row: {
           agency_id: string | null
@@ -717,6 +752,50 @@ export type Database = {
           },
         ]
       }
+      gallery_images: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          gallery_id: string | null
+          id: string
+          keywords: string[] | null
+          name: string | null
+          position: number | null
+          updated_at: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          gallery_id?: string | null
+          id?: string
+          keywords?: string[] | null
+          name?: string | null
+          position?: number | null
+          updated_at?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          gallery_id?: string | null
+          id?: string
+          keywords?: string[] | null
+          name?: string | null
+          position?: number | null
+          updated_at?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_images_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "image_galleries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_amenities: {
         Row: {
           category: string | null
@@ -823,6 +902,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      image_galleries: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          keywords: string[] | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          keywords?: string[] | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          keywords?: string[] | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       integration_configs: {
         Row: {
@@ -1256,6 +1362,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      locations: {
+        Row: {
+          address: string
+          city: string | null
+          country: string | null
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          postal_code: string | null
+          state: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address: string
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          postal_code?: string | null
+          state?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          postal_code?: string | null
+          state?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       packages: {
         Row: {

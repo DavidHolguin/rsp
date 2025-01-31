@@ -1,19 +1,23 @@
 import { useState, useRef, useEffect } from "react";
-import { Send } from "lucide-react";
+import { Send, Sun, Moon } from "lucide-react";
 import { ChatBubble } from "./ChatBubble";
 import { AudioRecorder } from "./AudioRecorder";
 import { Message } from "@/types/chat";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useTheme } from "next-themes";
 
 export const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isInitialized, setIsInitialized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { theme, setTheme } = useTheme();
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   useEffect(() => {
@@ -22,7 +26,6 @@ export const ChatInterface = () => {
 
   useEffect(() => {
     if (!isInitialized) {
-      // Add initial welcome message
       setMessages([
         {
           id: "welcome",
@@ -50,14 +53,38 @@ export const ChatInterface = () => {
     setMessages((prev) => [...prev, newMessage]);
     setInputValue("");
 
-    // Simulate agent response
+    // Simulate agent response with gallery
     setTimeout(() => {
       const agentResponse: Message = {
         id: (Date.now() + 1).toString(),
-        content: "Gracias por tu mensaje. ¿En qué puedo ayudarte?",
-        type: "text",
+        content: "Aquí tienes algunas imágenes de nuestra Suite Presidencial:",
+        type: "gallery",
         timestamp: Date.now(),
         sender: "agent",
+        metadata: {
+          gallery: {
+            images: [
+              {
+                url: "https://example.com/suite1.jpg",
+                description: "Vista al mar",
+              },
+              {
+                url: "https://example.com/suite2.jpg",
+                description: "Baño de lujo",
+              },
+            ],
+          },
+          quickReplies: [
+            {
+              text: "Ver disponibilidad",
+              action: "check_availability",
+            },
+            {
+              text: "Hacer reserva",
+              action: "book_now",
+            },
+          ],
+        },
       };
       setMessages((prev) => [...prev, agentResponse]);
     }, 1000);
@@ -71,7 +98,6 @@ export const ChatInterface = () => {
   };
 
   const handleAudioRecorded = (blob: Blob) => {
-    // Here you would normally process the audio
     console.log("Audio recorded:", blob);
     
     const newMessage: Message = {
@@ -86,22 +112,32 @@ export const ChatInterface = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      <div className="flex items-center justify-between p-4 bg-primary text-white">
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex items-center justify-between p-4 bg-primary dark:bg-gray-800 text-white">
         <h1 className="text-lg font-semibold">Asistente Virtual</h1>
-        <Button
-          variant="ghost"
-          className="text-white hover:text-white/90"
-          onClick={() => {
-            setMessages([]);
-            setIsInitialized(false);
-          }}
-        >
-          Nueva Conversación
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:text-white/90"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          >
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </Button>
+          <Button
+            variant="ghost"
+            className="text-white hover:text-white/90"
+            onClick={() => {
+              setMessages([]);
+              setIsInitialized(false);
+            }}
+          >
+            Nueva Conversación
+          </Button>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-100 dark:bg-gray-800">
         {messages.map((message) => (
           <ChatBubble
             key={message.id}
@@ -112,14 +148,14 @@ export const ChatInterface = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 border-t bg-white">
+      <div className="p-4 border-t dark:border-gray-700 bg-white dark:bg-gray-900">
         <div className="flex items-center space-x-2">
           <Input
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Escribe un mensaje..."
-            className="flex-1"
+            className="flex-1 dark:bg-gray-800 dark:text-white dark:border-gray-700"
           />
           <AudioRecorder onAudioRecorded={handleAudioRecorded} />
           <Button onClick={handleSend} className="bg-primary hover:bg-primary/90">

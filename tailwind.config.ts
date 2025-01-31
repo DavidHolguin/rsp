@@ -20,8 +20,14 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         chat: {
-          bubble: "#E8F8F5",
-          agent: "#DCF8C6",
+          bubble: {
+            user: "#DCF8C6",
+            agent: "#E8F8F5",
+            dark: {
+              user: "#005C4B",
+              agent: "#1F2C34"
+            }
+          }
         },
         primary: {
           DEFAULT: "#10B981",
