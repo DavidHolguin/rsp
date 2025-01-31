@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { Play, Pause } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { ImageGallery } from "./ImageGallery";
 
 interface ChatBubbleProps {
   message: Message;
@@ -162,6 +163,7 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
                 </span>
               )}
             </p>
+            {message.metadata?.gallery && <ImageGallery message={message} isAgent={isAgent} />}
             <div className="flex items-center justify-end gap-1">
               <span className="text-[11px] text-[#667781] dark:text-gray-400">
                 {formatMessageTime(message.timestamp)}
