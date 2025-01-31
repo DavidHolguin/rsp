@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Settings, FileText, Shield, X, MessageSquarePlus } from "lucide-react";
+import { X, MessageSquarePlus, FileText, Shield } from "lucide-react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,6 @@ interface ChatSidebarProps {
 export const ChatSidebar = ({ open, onClose }: ChatSidebarProps) => {
   const [agency, setAgency] = useState<Agency | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const { theme } = useTheme();
 
   useEffect(() => {
     const fetchAgencyData = async () => {
@@ -76,45 +75,43 @@ export const ChatSidebar = ({ open, onClose }: ChatSidebarProps) => {
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent side="left" className="w-[300px] sm:w-[400px] p-0">
         <div className="flex flex-col h-full bg-background">
-          <div className="p-4 flex justify-end">
+          <div className="p-4 border-b flex items-center justify-between bg-white dark:bg-gray-900 h-[72px]">
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-2 font-semibold"
+              onClick={() => {
+                onClose();
+              }}
+            >
+              <MessageSquarePlus className="h-5 w-5" />
+              <span>Nueva Conversación</span>
+            </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={onClose}
+              className="ml-2"
             >
               <X className="h-5 w-5" />
             </Button>
           </div>
 
           <ScrollArea className="flex-1 px-4">
-            <div className="space-y-4">
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-2"
-                onClick={() => {
-                  onClose();
-                }}
-              >
-                <MessageSquarePlus className="h-5 w-5" />
-                <span>Nueva Conversación</span>
-              </Button>
-
-              <div className="space-y-2">
-                {conversations.map((conversation) => (
-                  <Button
-                    key={conversation.id}
-                    variant="ghost"
-                    className="w-full justify-start text-left"
-                  >
-                    <span className="truncate">
-                      {conversation.title || "Conversación sin título"}
-                    </span>
-                    <span className="text-xs text-muted-foreground ml-auto">
-                      {new Date(conversation.created_at).toLocaleDateString()}
-                    </span>
-                  </Button>
-                ))}
-              </div>
+            <div className="space-y-2 py-4">
+              {conversations.map((conversation) => (
+                <Button
+                  key={conversation.id}
+                  variant="ghost"
+                  className="w-full justify-start text-left"
+                >
+                  <span className="truncate">
+                    {conversation.title || "Conversación sin título"}
+                  </span>
+                  <span className="text-xs text-muted-foreground ml-auto">
+                    {new Date(conversation.created_at).toLocaleDateString()}
+                  </span>
+                </Button>
+              ))}
             </div>
           </ScrollArea>
 
@@ -143,7 +140,7 @@ export const ChatSidebar = ({ open, onClose }: ChatSidebarProps) => {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
-                      <Settings className="h-5 w-5" />
+                      <MoreVertical className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
