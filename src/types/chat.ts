@@ -35,6 +35,7 @@ export interface Message {
       url?: string;
       action?: string;
     }[];
+    transcription?: string;
   };
 }
 
