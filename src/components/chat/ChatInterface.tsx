@@ -11,7 +11,7 @@ import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 import EmojiPicker from 'emoji-picker-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/use-toast";
@@ -70,7 +70,7 @@ export const ChatInterface = () => {
   }, []);
 
   const showGreeting = (name: string) => {
-    const now = utcToZonedTime(new Date(), timeZone);
+    const now = toZonedTime(new Date(), timeZone);
     const hour = now.getHours();
     let greeting = "Buenos días";
     if (hour >= 12 && hour < 18) greeting = "Buenas tardes";
