@@ -79,6 +79,24 @@ export default {
           "0%": { transform: "translateY(10px)", opacity: "0" },
           "100%": { transform: "translateY(0)", opacity: "1" },
         },
+        "pulse-border": {
+          "0%, 100%": { 
+            borderColor: "transparent",
+            transform: "rotate(0deg)"
+          },
+          "25%": { 
+            borderColor: "rgba(255,255,255,0.5)",
+            transform: "rotate(90deg)"
+          },
+          "50%": { 
+            borderColor: "rgba(255,255,255,0.8)",
+            transform: "rotate(180deg)"
+          },
+          "75%": { 
+            borderColor: "rgba(255,255,255,0.5)",
+            transform: "rotate(270deg)"
+          }
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -86,6 +104,7 @@ export default {
         "typing-dot": "typing-dot 1.4s infinite",
         "fade-in": "fade-in 0.3s ease-out",
         "slide-in": "slide-in 0.3s ease-out",
+        "pulse-border": "pulse-border 4s cubic-bezier(0.4, 0, 0.6, 1) infinite"
       },
       borderRadius: {
         lg: "var(--radius)",

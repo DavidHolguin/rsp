@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Sun, Moon, Menu, MessageSquarePlus } from "lucide-react";
+import { MoreVertical, Sun, Moon, Menu } from "lucide-react";
 import { ChatBubble } from "./ChatBubble";
 import { AudioRecorderWhatsApp } from "./AudioRecorderWhatsApp";
 import { ChatSidebar } from "./ChatSidebar";
@@ -8,11 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
-
-interface Chatbot {
-  name: string;
-  icon_url: string;
-}
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -145,58 +148,75 @@ export const ChatInterface = () => {
     }
   };
 
+  const formatLastMessageTime = (timestamp: number) => {
+    return formatDistanceToNow(new Date(timestamp), { 
+      addSuffix: true,
+      locale: es 
+    });
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
       <div className="flex items-center p-4 bg-primary dark:bg-gray-800 text-white">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:text-white/90"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-          
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              {chatbot?.icon_url ? (
+        <div className="flex items-center gap-4 flex-1">
+          <div className="relative">
+            {chatbot?.icon_url ? (
+              <div className="relative">
                 <img
                   src={chatbot.icon_url}
                   alt={chatbot.name}
                   className="w-10 h-10 rounded-full object-cover"
                 />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                  <span className="text-lg font-semibold text-white">
-                    {chatbot?.name ? getInitials(chatbot.name) : "CB"}
-                  </span>
-                </div>
-              )}
-              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-primary dark:border-gray-800"></div>
-            </div>
-            <div className="flex flex-col">
-              <h1 className="text-lg font-semibold truncate max-w-[200px]">
-                {chatbot?.name || "Asistente Virtual"}
-              </h1>
-              {lastMessageTime && (
-                <span className="text-xs text-white/70">
-                  Último mensaje: {lastMessageTime.toLocaleString()}
+                <div className="absolute inset-0 rounded-full border-2 border-transparent animate-pulse-border" />
+              </div>
+            ) : (
+              <div className="relative w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                <span className="text-lg font-semibold text-white">
+                  {chatbot?.name ? getInitials(chatbot.name) : "CB"}
                 </span>
-              )}
-            </div>
+                <div className="absolute inset-0 rounded-full border-2 border-transparent animate-pulse-border" />
+              </div>
+            )}
+            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-primary dark:border-gray-800"></div>
+          </div>
+          <div className="flex flex-col">
+            <h1 className="text-lg font-semibold truncate max-w-[200px]">
+              {chatbot?.name || "Asistente Virtual"}
+            </h1>
+            {lastMessageTime && (
+              <span className="text-xs text-white/70">
+                {formatLastMessageTime(lastMessageTime.getTime())}
+              </span>
+            )}
           </div>
         </div>
 
-        <div className="flex items-center gap-2 ml-auto">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:text-white/90"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
-            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </Button>
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:text-white/90"
+              >
+                <MoreVertical className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+                {theme === "dark" ? (
+                  <Sun className="mr-2 h-4 w-4" />
+                ) : (
+                  <Moon className="mr-2 h-4 w-4" />
+                )}
+                Cambiar tema
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSidebarOpen(true)}>
+                <Menu className="mr-2 h-4 w-4" />
+                Menú
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
