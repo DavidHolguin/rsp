@@ -57,3 +57,8 @@ export interface Lead {
   createdAt: number;
   lastActive: number;
 }
+
+export interface Chatbot {
+  name: string;
+  icon_url?: string;
+}

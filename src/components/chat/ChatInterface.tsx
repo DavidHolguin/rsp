@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { MoreVertical, Sun, Moon, Menu } from "lucide-react";
+import { MoreVertical, Sun, Moon, Menu, Send } from "lucide-react";
 import { ChatBubble } from "./ChatBubble";
 import { AudioRecorderWhatsApp } from "./AudioRecorderWhatsApp";
 import { ChatSidebar } from "./ChatSidebar";
-import { Message } from "@/types/chat";
+import { Message, Chatbot } from "@/types/chat";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "next-themes";
