@@ -2,16 +2,14 @@ import { cn } from "@/lib/utils";
 import { Message } from "@/types/chat";
 import { useEffect, useState, useRef } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { MapPin, Play, Pause, Volume2, UserCircle2 } from "lucide-react";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { MapPin, Play, Pause } from "lucide-react";
 
 interface ChatBubbleProps {
   message: Message;
   isAgent?: boolean;
-  botIcon?: string;
 }
 
-export const ChatBubble = ({ message, isAgent = false, botIcon }: ChatBubbleProps) => {
+export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
   const [displayText, setDisplayText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -94,7 +92,12 @@ export const ChatBubble = ({ message, isAgent = false, botIcon }: ChatBubbleProp
         <audio ref={audioRef} src={message.content} className="hidden" />
         <button
           onClick={toggleAudio}
-          className="p-2 rounded-full bg-primary text-white hover:bg-primary/90 transition-colors"
+          className={cn(
+            "p-2 rounded-full transition-colors",
+            isAgent 
+              ? "bg-[#1F2C34] text-white hover:bg-[#1F2C34]/90" 
+              : "bg-[#005C4B] text-white hover:bg-[#005C4B]/90"
+          )}
         >
           {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
         </button>
@@ -106,18 +109,21 @@ export const ChatBubble = ({ message, isAgent = false, botIcon }: ChatBubbleProp
             onClick={handleProgressClick}
           >
             <div
-              className="h-full bg-primary rounded-full transition-all"
+              className={cn(
+                "h-full rounded-full transition-all",
+                isAgent ? "bg-[#1F2C34]" : "bg-[#005C4B]"
+              )}
               style={{ width: `${(currentTime / duration) * 100}%` }}
             />
           </div>
-          <div className="flex justify-between text-xs mt-1">
+          <div className="flex justify-between text-xs mt-1 text-gray-500">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
         </div>
         
         {message.metadata?.transcription && (
-          <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+          <div className="mt-2 text-xs text-gray-500">
             {message.metadata.transcription}
           </div>
         )}
@@ -188,26 +194,16 @@ export const ChatBubble = ({ message, isAgent = false, botIcon }: ChatBubbleProp
   return (
     <div
       className={cn(
-        "flex w-full mb-4 items-start gap-2",
+        "flex w-full mb-4",
         isAgent ? "justify-start" : "justify-end"
       )}
     >
-      {isAgent && (
-        <Avatar className="w-8 h-8">
-          {botIcon ? (
-            <AvatarImage src={botIcon} alt="Bot" />
-          ) : (
-            <AvatarFallback className="bg-primary text-white">B</AvatarFallback>
-          )}
-        </Avatar>
-      )}
-      
       <div
         className={cn(
-          "max-w-[80%] rounded-lg p-3 animate-slide-in dark:text-white",
+          "max-w-[80%] rounded-lg p-3 animate-slide-in",
           isAgent
-            ? "bg-chat-bubble-agent dark:bg-chat-bubble-dark-agent rounded-tl-none"
-            : "bg-chat-bubble-user dark:bg-chat-bubble-dark-user rounded-tr-none"
+            ? "bg-[#1F2C34] text-white rounded-tl-none"
+            : "bg-[#005C4B] text-white rounded-tr-none"
         )}
       >
         {message.type === "text" && (
@@ -234,14 +230,6 @@ export const ChatBubble = ({ message, isAgent = false, botIcon }: ChatBubbleProp
         {message.type === "location" && renderLocation()}
         {renderQuickReplies()}
       </div>
-
-      {!isAgent && (
-        <Avatar className="w-8 h-8">
-          <AvatarFallback className="bg-primary text-white">
-            <UserCircle2 className="w-5 h-5" />
-          </AvatarFallback>
-        </Avatar>
-      )}
     </div>
   );
 };

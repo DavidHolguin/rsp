@@ -10,12 +10,6 @@ import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 export const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -32,19 +26,17 @@ export const ChatInterface = () => {
     const fetchChatbotData = async () => {
       const { data } = await supabase
         .from("chatbots")
-        .select("name, icon_url")
+        .select("name, icon_url, description")
         .eq("id", "2941bb4a-cdf4-4677-8e0b-d1def860728d")
         .single();
 
       if (data) {
         setChatbot(data);
-        // Update document title and meta description
         document.title = data.name || "Chat Asistente Virtual";
         const metaDescription = document.querySelector('meta[name="description"]');
         if (metaDescription) {
           metaDescription.setAttribute('content', data.description || "Asistente virtual para consultas y reservas");
         }
-        // Update theme color
         const metaTheme = document.querySelector('meta[name="theme-color"]');
         if (metaTheme) {
           metaTheme.setAttribute('content', theme === 'dark' ? '#1F2937' : '#ffffff');
@@ -100,7 +92,6 @@ export const ChatInterface = () => {
     setMessages((prev) => [...prev, newMessage]);
     setInputValue("");
 
-    // Simulate agent response
     setTimeout(() => {
       const agentResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -136,7 +127,6 @@ export const ChatInterface = () => {
     setIsRecording(false);
 
     if (transcription) {
-      // Simulate agent response to transcribed text
       setTimeout(() => {
         const agentResponse: Message = {
           id: (Date.now() + 1).toString(),
@@ -158,30 +148,15 @@ export const ChatInterface = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="fixed top-0 left-0 right-0 z-50 flex items-center p-4 bg-white dark:bg-gray-900 border-b dark:border-gray-700">
+    <div className="flex flex-col h-screen bg-[#0B141A] dark:bg-[#0B141A]">
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center p-4 bg-[#1F2C34] dark:bg-[#1F2C34] border-b dark:border-gray-700">
         <div className="flex items-center gap-4 flex-1">
-          <div className="relative">
-            {chatbot?.icon_url ? (
-              <img
-                src={chatbot.icon_url}
-                alt={chatbot.name}
-                className="w-10 h-10 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-lg font-semibold text-primary">
-                  {chatbot?.name ? chatbot.name.charAt(0).toUpperCase() : "CB"}
-                </span>
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col">
+          <div className="text-white">
             <h1 className="text-lg font-semibold truncate max-w-[200px]">
               {chatbot?.name || "Asistente Virtual"}
             </h1>
             {lastMessageTime && (
-              <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+              <span className="text-xs text-gray-400 flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {formatLastMessageTime(lastMessageTime.getTime())}
               </span>
@@ -189,52 +164,50 @@ export const ChatInterface = () => {
           </div>
         </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSidebarOpen(true)}
-              className="text-gray-700 dark:text-gray-300"
-            >
-              <MoreVertical className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-        </DropdownMenu>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setSidebarOpen(true)}
+          className="text-gray-300"
+        >
+          <MoreVertical className="h-5 w-5" />
+        </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-100 dark:bg-gray-800 mt-[72px]">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#0B141A] dark:bg-[#0B141A] mt-[72px] mb-[72px]">
         {messages.map((message) => (
           <ChatBubble
             key={message.id}
             message={message}
             isAgent={message.sender === "agent"}
-            botIcon={chatbot?.icon_url}
           />
         ))}
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 border-t dark:border-gray-700 bg-white dark:bg-gray-900">
+      <div className="fixed bottom-0 left-0 right-0 p-4 border-t dark:border-gray-700 bg-[#1F2C34] dark:bg-[#1F2C34]">
         <div className="flex items-center space-x-2">
           <Input
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Escribe un mensaje..."
-            className="flex-1 dark:bg-gray-800 dark:text-white dark:border-gray-700"
+            className="flex-1 dark:bg-[#2A3942] dark:text-white dark:border-gray-700 rounded-full"
           />
-          <AudioRecorderWhatsApp 
-            onAudioRecorded={handleAudioRecorded}
-            onCancel={() => setIsRecording(false)}
-          />
-          <Button 
-            onClick={handleSend} 
-            className="bg-primary hover:bg-primary/90"
-            disabled={isRecording}
-          >
-            <Send className="w-5 h-5" />
-          </Button>
+          {inputValue.trim() ? (
+            <Button 
+              onClick={handleSend} 
+              className="bg-[#00A884] hover:bg-[#00A884]/90 rounded-full"
+              size="icon"
+            >
+              <Send className="w-5 h-5" />
+            </Button>
+          ) : (
+            <AudioRecorderWhatsApp 
+              onAudioRecorded={handleAudioRecorded}
+              onCancel={() => setIsRecording(false)}
+            />
+          )}
         </div>
       </div>
 
