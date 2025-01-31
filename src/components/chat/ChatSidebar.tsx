@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
-import { Settings, FileText, Shield, X } from "lucide-react";
+import { Settings, FileText, Shield, X, MessageSquarePlus } from "lucide-react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Agency {
   name: string;
@@ -58,98 +63,105 @@ export const ChatSidebar = ({ open, onClose }: ChatSidebarProps) => {
     fetchConversations();
   }, []);
 
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent side="left" className="w-[300px] sm:w-[400px] p-0">
-        <SheetHeader className="p-4 bg-primary dark:bg-gray-800">
-          <div className="flex items-center justify-between">
-            <SheetTitle className="text-white">Menu</SheetTitle>
+        <div className="flex flex-col h-full bg-background">
+          <SheetHeader className="p-4 border-b">
+            <div className="flex items-center justify-between">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Settings className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Términos y Condiciones
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Shield className="mr-2 h-4 w-4" />
+                    Políticas de Uso
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+          </SheetHeader>
+
+          <ScrollArea className="flex-1 px-4 py-2">
             <Button
               variant="ghost"
-              size="icon"
-              className="text-white hover:text-white/90"
-              onClick={onClose}
+              className="w-full justify-start gap-2 mb-4"
+              onClick={() => {
+                // Handle new conversation
+                onClose();
+              }}
             >
-              <X className="h-5 w-5" />
+              <MessageSquarePlus className="h-5 w-5" />
+              <span>Nueva Conversación</span>
             </Button>
-          </div>
-        </SheetHeader>
 
-        <ScrollArea className="h-[calc(100vh-64px)]">
-          <div className="flex flex-col h-full">
-            <div className="flex-1">
-              <div className="space-y-1 p-4">
+            <div className="space-y-2">
+              {conversations.map((conversation) => (
                 <Button
+                  key={conversation.id}
                   variant="ghost"
-                  className="w-full justify-start gap-2"
+                  className="w-full justify-start text-left"
                 >
-                  <Settings className="h-5 w-5" />
-                  Ajustes
+                  <span className="truncate">
+                    {conversation.title || "Conversación sin título"}
+                  </span>
+                  <span className="text-xs text-muted-foreground ml-auto">
+                    {new Date(conversation.created_at).toLocaleDateString()}
+                  </span>
                 </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-2"
-                >
-                  <FileText className="h-5 w-5" />
-                  Términos y Condiciones
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-2"
-                >
-                  <Shield className="h-5 w-5" />
-                  Políticas de Uso
-                </Button>
-              </div>
+              ))}
+            </div>
+          </ScrollArea>
 
-              <Separator className="my-4" />
-
-              <div className="px-4">
-                <h4 className="text-sm font-medium mb-2">Conversaciones Previas</h4>
-                <div className="space-y-2">
-                  {conversations.map((conversation) => (
-                    <Button
-                      key={conversation.id}
-                      variant="ghost"
-                      className="w-full justify-start text-left"
-                    >
-                      {conversation.title || "Conversación sin título"}
-                      <span className="text-xs text-muted-foreground ml-auto">
-                        {new Date(conversation.created_at).toLocaleDateString()}
-                      </span>
-                    </Button>
-                  ))}
+          {agency && (
+            <div className="p-4 mt-auto border-t bg-muted/50">
+              <div className="flex items-center gap-3">
+                {agency.logo_url ? (
+                  <img
+                    src={agency.logo_url}
+                    alt={agency.name}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="text-lg font-semibold text-primary">
+                      {getInitials(agency.name)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{agency.name}</p>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {agency.contact_email}
+                  </p>
                 </div>
               </div>
             </div>
-
-            {agency && (
-              <div className="p-4 mt-auto border-t">
-                <div className="flex items-center gap-3">
-                  {agency.logo_url ? (
-                    <img
-                      src={agency.logo_url}
-                      alt={agency.name}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-lg font-semibold text-primary">
-                        {agency.name[0]}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{agency.name}</p>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {agency.contact_email}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
+          )}
+        </div>
       </SheetContent>
     </Sheet>
   );

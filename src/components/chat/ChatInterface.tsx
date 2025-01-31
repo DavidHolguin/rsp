@@ -7,14 +7,47 @@ import { Message } from "@/types/chat";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "next-themes";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Chatbot {
+  name: string;
+  icon_url: string;
+}
 
 export const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isInitialized, setIsInitialized] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [chatbot, setChatbot] = useState<Chatbot | null>(null);
+  const [lastMessageTime, setLastMessageTime] = useState<Date | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme, setTheme } = useTheme();
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  useEffect(() => {
+    const fetchChatbotData = async () => {
+      const { data } = await supabase
+        .from("chatbots")
+        .select("name, icon_url")
+        .eq("id", "2941bb4a-cdf4-4677-8e0b-d1def860728d")
+        .single();
+
+      if (data) {
+        setChatbot(data);
+      }
+    };
+
+    fetchChatbotData();
+  }, []);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -40,6 +73,12 @@ export const ChatInterface = () => {
       setIsInitialized(true);
     }
   }, [isInitialized]);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      setLastMessageTime(new Date(messages[messages.length - 1].timestamp));
+    }
+  }, [messages]);
 
   const handleSend = () => {
     if (!inputValue.trim()) return;
@@ -115,8 +154,8 @@ export const ChatInterface = () => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="flex items-center justify-between p-4 bg-primary dark:bg-gray-800 text-white">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center p-4 bg-primary dark:bg-gray-800 text-white">
+        <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
@@ -125,9 +164,36 @@ export const ChatInterface = () => {
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <h1 className="text-lg font-semibold">Asistente Virtual</h1>
+          
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              {chatbot?.icon_url ? (
+                <img
+                  src={chatbot.icon_url}
+                  alt={chatbot.name}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                  <span className="text-lg font-semibold text-white">
+                    {chatbot?.name ? getInitials(chatbot.name) : "CB"}
+                  </span>
+                </div>
+              )}
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-primary dark:border-gray-800"></div>
+            </div>
+            <div className="flex flex-col items-start">
+              <h1 className="text-lg font-semibold">{chatbot?.name || "Asistente Virtual"}</h1>
+              {lastMessageTime && (
+                <span className="text-xs text-white/70">
+                  Último mensaje: {lastMessageTime.toLocaleString()}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-2 ml-auto">
           <Button
             variant="ghost"
             size="icon"
@@ -135,16 +201,6 @@ export const ChatInterface = () => {
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           >
             {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </Button>
-          <Button
-            variant="ghost"
-            className="text-white hover:text-white/90"
-            onClick={() => {
-              setMessages([]);
-              setIsInitialized(false);
-            }}
-          >
-            Nueva Conversación
           </Button>
         </div>
       </div>
