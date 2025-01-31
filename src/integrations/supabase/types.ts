@@ -1307,7 +1307,9 @@ export type Database = {
           agency_id: string | null
           created_at: string | null
           email: string | null
+          has_completed_onboarding: boolean | null
           id: string
+          last_greeting_at: string | null
           last_interaction: string | null
           name: string | null
           phone: string | null
@@ -1324,7 +1326,9 @@ export type Database = {
           agency_id?: string | null
           created_at?: string | null
           email?: string | null
+          has_completed_onboarding?: boolean | null
           id?: string
+          last_greeting_at?: string | null
           last_interaction?: string | null
           name?: string | null
           phone?: string | null
@@ -1341,7 +1345,9 @@ export type Database = {
           agency_id?: string | null
           created_at?: string | null
           email?: string | null
+          has_completed_onboarding?: boolean | null
           id?: string
+          last_greeting_at?: string | null
           last_interaction?: string | null
           name?: string | null
           phone?: string | null

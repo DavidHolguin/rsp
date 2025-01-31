@@ -3,6 +3,7 @@ import { MoreVertical, Send, Smile } from "lucide-react";
 import { ChatBubble } from "./ChatBubble";
 import { AudioRecorderWhatsApp } from "./AudioRecorderWhatsApp";
 import { ChatSidebar } from "./ChatSidebar";
+import { OnboardingModal } from "./OnboardingModal";
 import { Message, Chatbot } from "@/types/chat";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import EmojiPicker from 'emoji-picker-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useToast } from "@/components/ui/use-toast";
 
 export const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -22,9 +24,86 @@ export const ChatInterface = () => {
   const [lastMessageTime, setLastMessageTime] = useState<Date | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [currentLead, setCurrentLead] = useState<{ id: string; name: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
   const inputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      const { data: existingLead } = await supabase
+        .from("leads")
+        .select("id, name, has_completed_onboarding")
+        .eq("active", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (!existingLead || !existingLead.has_completed_onboarding) {
+        setShowOnboarding(true);
+      } else {
+        setCurrentLead({ id: existingLead.id, name: existingLead.name });
+        showGreeting(existingLead.name);
+      }
+    };
+
+    checkOnboardingStatus();
+  }, []);
+
+  const showGreeting = (name: string) => {
+    const hour = new Date().getHours();
+    let greeting = "Buenos días";
+    if (hour >= 12 && hour < 18) greeting = "Buenas tardes";
+    if (hour >= 18) greeting = "Buenas noches";
+
+    setMessages([{
+      id: "greeting",
+      content: `${greeting}, ${name}. ¿En qué puedo ayudarte hoy?`,
+      type: "text",
+      timestamp: Date.now(),
+      sender: "agent",
+    }]);
+  };
+
+  const handleOnboarding = async (name: string, phone: string) => {
+    try {
+      const { data: lead, error } = await supabase.rpc(
+        "create_or_update_lead",
+        {
+          p_name: name,
+          p_phone: phone,
+          p_email: "",
+          p_agency_id: "2941bb4a-cdf4-4677-8e0b-d1def860728d",
+          p_source: "chat"
+        }
+      );
+
+      if (error) throw error;
+
+      await supabase
+        .from("leads")
+        .update({ has_completed_onboarding: true })
+        .eq("id", lead);
+
+      setCurrentLead({ id: lead, name });
+      setShowOnboarding(false);
+      showGreeting(name);
+
+      toast({
+        title: "¡Bienvenido!",
+        description: "Gracias por compartir tus datos",
+      });
+    } catch (error) {
+      console.error("Error during onboarding:", error);
+      toast({
+        title: "Error",
+        description: "Hubo un problema al guardar tus datos",
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     const fetchChatbotData = async () => {
@@ -259,6 +338,10 @@ export const ChatInterface = () => {
       </div>
 
       <ChatSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      
+      {showOnboarding && (
+        <OnboardingModal onSubmit={handleOnboarding} />
+      )}
     </div>
   );
 };
