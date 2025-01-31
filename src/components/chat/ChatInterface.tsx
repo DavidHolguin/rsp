@@ -69,13 +69,24 @@ export const ChatInterface = () => {
 
   const handleOnboarding = async (name: string, phone: string) => {
     try {
+      // First check if the agency exists
+      const { data: agency, error: agencyError } = await supabase
+        .from("agencies")
+        .select("id")
+        .eq("id", "2941bb4a-cdf4-4677-8e0b-d1def860728d")
+        .single();
+
+      if (agencyError || !agency) {
+        throw new Error("Agency not found. Please contact support.");
+      }
+
       const { data: lead, error } = await supabase.rpc(
         "create_or_update_lead",
         {
           p_name: name,
           p_phone: phone,
           p_email: "",
-          p_agency_id: "2941bb4a-cdf4-4677-8e0b-d1def860728d",
+          p_agency_id: agency.id,
           p_source: "chat"
         }
       );
@@ -99,7 +110,7 @@ export const ChatInterface = () => {
       console.error("Error during onboarding:", error);
       toast({
         title: "Error",
-        description: "Hubo un problema al guardar tus datos",
+        description: "Hubo un problema al guardar tus datos. Por favor intenta nuevamente.",
         variant: "destructive",
       });
     }
