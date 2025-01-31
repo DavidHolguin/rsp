@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { Message } from "@/types/chat";
 import { useEffect, useState, useRef } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { MapPin, Play, Pause } from "lucide-react";
+import { MapPin, Play, Pause, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -90,7 +90,7 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
     if (message.type !== "audio") return null;
 
     return (
-      <div className="flex items-center gap-3 min-w-[200px]">
+      <div className="flex items-center gap-3 min-w-[200px] bg-[#F1F1F1] dark:bg-[#2A3942] p-3 rounded-lg">
         <audio ref={audioRef} src={message.content} className="hidden" />
         <button
           onClick={toggleAudio}
@@ -98,7 +98,7 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
             "p-2 rounded-full transition-colors",
             isAgent 
               ? "bg-[#1F2C34] text-white hover:bg-[#1F2C34]/90" 
-              : "bg-[#005C4B] text-white hover:bg-[#005C4B]/90"
+              : "bg-[#00A884] text-white hover:bg-[#00A884]/90"
           )}
         >
           {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -107,13 +107,13 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
         <div className="flex-1">
           <div
             ref={progressRef}
-            className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full cursor-pointer"
+            className="h-1 bg-gray-300 dark:bg-gray-600 rounded-full cursor-pointer"
             onClick={handleProgressClick}
           >
             <div
               className={cn(
                 "h-full rounded-full transition-all",
-                isAgent ? "bg-[#1F2C34]" : "bg-[#005C4B]"
+                isAgent ? "bg-[#1F2C34]" : "bg-[#00A884]"
               )}
               style={{ width: `${(currentTime / duration) * 100}%` }}
             />
@@ -123,12 +123,6 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
             <span>{formatTime(duration)}</span>
           </div>
         </div>
-        
-        {message.metadata?.transcription && (
-          <div className="mt-2 text-xs text-gray-500">
-            {message.metadata.transcription}
-          </div>
-        )}
       </div>
     );
   };
@@ -194,7 +188,18 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
   };
 
   const formatMessageTime = (timestamp: number) => {
-    return format(new Date(timestamp), "h:mm a", { locale: es });
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 60) {
+      return `Hace ${diffInMinutes} min`;
+    } else if (diffInMinutes < 1440) {
+      const hours = Math.floor(diffInMinutes / 60);
+      return `Hace ${hours} h`;
+    } else {
+      return format(date, "h:mm a", { locale: es });
+    }
   };
 
   return (
@@ -208,8 +213,8 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
         className={cn(
           "max-w-[80%] rounded-lg p-3 relative",
           isAgent
-            ? "bg-chat-bubble-dark-agent text-white rounded-tl-none"
-            : "bg-chat-bubble-dark-user text-white rounded-tr-none"
+            ? "bg-[#202C33] text-white rounded-tl-none"
+            : "bg-[#005C4B] text-white rounded-tr-none"
         )}
       >
         {message.type === "text" && (
@@ -224,17 +229,19 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
                 </span>
               )}
             </p>
-            <span className="text-[11px] opacity-60 block text-right">
-              {formatMessageTime(message.timestamp)}
-            </span>
+            <div className="flex items-center justify-end gap-1 text-[11px] opacity-60">
+              <Clock className="w-3 h-3" />
+              <span>{formatMessageTime(message.timestamp)}</span>
+            </div>
           </div>
         )}
         {message.type === "audio" && (
           <div className="space-y-2">
             {renderAudioPlayer()}
-            <span className="text-[11px] opacity-60 block text-right">
-              {formatMessageTime(message.timestamp)}
-            </span>
+            <div className="flex items-center justify-end gap-1 text-[11px] opacity-60">
+              <Clock className="w-3 h-3" />
+              <span>{formatMessageTime(message.timestamp)}</span>
+            </div>
           </div>
         )}
         {message.type === "image" && (

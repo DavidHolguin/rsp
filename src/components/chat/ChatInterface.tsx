@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MoreVertical, Send, Smile } from "lucide-react";
+import { MoreVertical, Send, Smile, Clock } from "lucide-react";
 import { ChatBubble } from "./ChatBubble";
 import { AudioRecorderWhatsApp } from "./AudioRecorderWhatsApp";
 import { ChatSidebar } from "./ChatSidebar";
@@ -160,24 +160,32 @@ export const ChatInterface = () => {
     <div className="flex flex-col h-screen bg-[#0B141A] dark:bg-[#0B141A]">
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center p-4 bg-[#1F2C34] dark:bg-[#1F2C34] border-b dark:border-gray-700">
         <div className="flex items-center gap-4 flex-1">
-          {chatbot?.icon_url && (
-            <img 
-              src={chatbot.icon_url} 
-              alt={chatbot.name || "Chatbot"} 
-              className="w-10 h-10 rounded-full"
-            />
-          )}
+          <div className="relative">
+            {chatbot?.icon_url && (
+              <>
+                <img 
+                  src={chatbot.icon_url} 
+                  alt={chatbot.name || "Chatbot"} 
+                  className="w-10 h-10 rounded-full"
+                />
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#00A884] rounded-full border-2 border-[#1F2C34]" />
+              </>
+            )}
+          </div>
           <div className="text-white">
             <h1 className="text-lg font-semibold truncate max-w-[200px]">
               {chatbot?.name || "Asistente Virtual"}
             </h1>
             {lastMessageTime && (
-              <span className="text-xs text-gray-400 flex items-center gap-1">
-                {formatDistanceToNow(lastMessageTime, { 
-                  addSuffix: true,
-                  locale: es,
-                })}
-              </span>
+              <div className="flex items-center gap-1 text-xs text-gray-400">
+                <Clock className="w-3 h-3" />
+                <span>
+                  {formatDistanceToNow(lastMessageTime, { 
+                    addSuffix: true,
+                    locale: es,
+                  }).replace('hace', 'Hace')}
+                </span>
+              </div>
             )}
           </div>
         </div>
