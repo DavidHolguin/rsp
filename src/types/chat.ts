@@ -61,4 +61,5 @@ export interface Lead {
 export interface Chatbot {
   name: string;
   icon_url?: string;
+  description?: string;
 }

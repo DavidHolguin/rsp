@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { X, MessageSquarePlus, FileText, Shield } from "lucide-react";
+import { X, MessageSquarePlus, FileText, Shield, MoreVertical } from "lucide-react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
