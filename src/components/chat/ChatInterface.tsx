@@ -11,7 +11,7 @@ import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { toZonedTime } from 'date-fns-tz';
+import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
 import EmojiPicker from 'emoji-picker-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/use-toast";
@@ -23,7 +23,6 @@ const imageRelatedKeywords = [
   'picture', 'pictures', 'photo', 'photos'
 ];
 
-// Palabras comunes a ignorar
 const stopWords = [
   'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'y', 'o', 'pero', 'si',
   'de', 'del', 'al', 'a', 'ante', 'con', 'en', 'para', 'por', 'sin', 'sobre',
@@ -70,8 +69,9 @@ export const ChatInterface = () => {
   }, []);
 
   const showGreeting = (name: string) => {
-    const now = toZonedTime(new Date(), timeZone);
-    const hour = now.getHours();
+    const now = new Date();
+    const zonedDate = utcToZonedTime(now, timeZone);
+    const hour = zonedDate.getHours();
     let greeting = "Buenos días";
     if (hour >= 12 && hour < 18) greeting = "Buenas tardes";
     if (hour >= 18) greeting = "Buenas noches";
@@ -190,16 +190,13 @@ export const ChatInterface = () => {
   }, [messages]);
 
   const normalizeSearchQuery = (query: string): string => {
-    // Convertir a minúsculas y remover acentos
     const normalized = query.toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "");
 
-    // Dividir en palabras y filtrar stop words
     const words = normalized.split(/\s+/)
       .filter(word => !stopWords.includes(word));
 
-    // Unir palabras con operador & para tsquery
     return words.join(' & ');
   };
 
@@ -214,7 +211,7 @@ export const ChatInterface = () => {
     if (hasImageKeyword) {
       try {
         const searchQuery = normalizeSearchQuery(message);
-        console.log('Normalized search query:', searchQuery); // Para debugging
+        console.log('Normalized search query:', searchQuery);
 
         const { data: images, error } = await supabase
           .from('gallery_images')
