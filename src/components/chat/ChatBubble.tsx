@@ -2,14 +2,16 @@ import { cn } from "@/lib/utils";
 import { Message } from "@/types/chat";
 import { useEffect, useState, useRef } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { MapPin, Play, Pause, Volume2 } from "lucide-react";
+import { MapPin, Play, Pause, Volume2, UserCircle2 } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface ChatBubbleProps {
   message: Message;
   isAgent?: boolean;
+  botIcon?: string;
 }
 
-export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
+export const ChatBubble = ({ message, isAgent = false, botIcon }: ChatBubbleProps) => {
   const [displayText, setDisplayText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -186,10 +188,20 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
   return (
     <div
       className={cn(
-        "flex w-full mb-4",
+        "flex w-full mb-4 items-start gap-2",
         isAgent ? "justify-start" : "justify-end"
       )}
     >
+      {isAgent && (
+        <Avatar className="w-8 h-8">
+          {botIcon ? (
+            <AvatarImage src={botIcon} alt="Bot" />
+          ) : (
+            <AvatarFallback className="bg-primary text-white">B</AvatarFallback>
+          )}
+        </Avatar>
+      )}
+      
       <div
         className={cn(
           "max-w-[80%] rounded-lg p-3 animate-slide-in dark:text-white",
@@ -222,6 +234,14 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
         {message.type === "location" && renderLocation()}
         {renderQuickReplies()}
       </div>
+
+      {!isAgent && (
+        <Avatar className="w-8 h-8">
+          <AvatarFallback className="bg-primary text-white">
+            <UserCircle2 className="w-5 h-5" />
+          </AvatarFallback>
+        </Avatar>
+      )}
     </div>
   );
 };

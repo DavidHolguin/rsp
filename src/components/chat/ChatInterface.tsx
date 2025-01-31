@@ -209,6 +209,7 @@ export const ChatInterface = () => {
             key={message.id}
             message={message}
             isAgent={message.sender === "agent"}
+            botIcon={chatbot?.icon_url}
           />
         ))}
         <div ref={messagesEndRef} />
