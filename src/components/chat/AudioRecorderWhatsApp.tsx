@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Mic, Send, Trash2, X, ChevronUp } from "lucide-react";
+import { Mic, X, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,14 +12,12 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
   const [isRecording, setIsRecording] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const startYRef = useRef<number>(0);
   const timerRef = useRef<number>();
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const startRecording = async () => {
     try {
@@ -52,15 +50,40 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
       const mediaRecorder = mediaRecorderRef.current!;
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const url = URL.createObjectURL(audioBlob);
-        setAudioUrl(url);
         setIsRecording(false);
         clearInterval(timerRef.current);
+        await processAndSendAudio(audioBlob);
         resolve();
       };
       mediaRecorder.stop();
       mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
     });
+  };
+
+  const processAndSendAudio = async (audioBlob: Blob) => {
+    setIsProcessing(true);
+    try {
+      const reader = new FileReader();
+      
+      reader.onload = async () => {
+        const base64Audio = (reader.result as string).split(',')[1];
+        
+        const { data, error } = await supabase.functions.invoke('transcribe-audio', {
+          body: { audio: base64Audio }
+        });
+
+        if (error) throw error;
+        
+        onAudioRecorded(audioBlob, data.text);
+        setRecordingTime(0);
+      };
+      
+      reader.readAsDataURL(audioBlob);
+    } catch (error) {
+      console.error("Error processing audio:", error);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -101,66 +124,11 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const sendAudio = async () => {
-    if (!audioUrl) return;
-    setIsProcessing(true);
-    
-    try {
-      const audioBlob = audioChunksRef.current[0];
-      const reader = new FileReader();
-      
-      reader.onload = async () => {
-        const base64Audio = (reader.result as string).split(',')[1];
-        
-        const { data, error } = await supabase.functions.invoke('transcribe-audio', {
-          body: { audio: base64Audio }
-        });
-
-        if (error) throw error;
-        
-        onAudioRecorded(audioBlob, data.text);
-        setAudioUrl(null);
-        setRecordingTime(0);
-      };
-      
-      reader.readAsDataURL(audioBlob);
-    } catch (error) {
-      console.error("Error processing audio:", error);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
-      if (audioUrl) URL.revokeObjectURL(audioUrl);
     };
-  }, [audioUrl]);
-
-  if (audioUrl) {
-    return (
-      <div className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-800 rounded-lg animate-slide-in">
-        <audio ref={audioRef} src={audioUrl} controls className="h-8" />
-        <button
-          onClick={sendAudio}
-          disabled={isProcessing}
-          className="p-2 rounded-full bg-primary text-white hover:bg-primary/90 transition-colors"
-        >
-          <Send className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => {
-            setAudioUrl(null);
-            setRecordingTime(0);
-          }}
-          className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-    );
-  }
+  }, []);
 
   return (
     <div className="relative">
