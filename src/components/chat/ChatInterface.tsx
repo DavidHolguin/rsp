@@ -16,6 +16,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/components/ui/use-toast";
 import { sendMessage } from "@/utils/api";
 
+const imageRelatedKeywords = [
+  'imagen', 'imágenes', 'foto', 'fotos', 'fotografía', 'fotografías',
+  'selfie', 'selfies', 'video', 'videos', 'galería', 'gallery',
+  'picture', 'pictures', 'photo', 'photos'
+];
+
 export const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -172,13 +178,57 @@ export const ChatInterface = () => {
     }
   }, [messages]);
 
+  const checkForImagesInMessage = async (message: string) => {
+    const words = message.toLowerCase().split(/\s+/);
+    const hasImageKeyword = words.some(word => 
+      imageRelatedKeywords.some(keyword => 
+        word.includes(keyword.toLowerCase())
+      )
+    );
+
+    if (hasImageKeyword) {
+      try {
+        const { data: images, error } = await supabase
+          .from('gallery_images')
+          .select('url, description')
+          .textSearch('keywords', words.join(' '))
+          .limit(4);
+
+        if (error) throw error;
+
+        if (images && images.length > 0) {
+          return {
+            type: "text" as const,
+            content: message,
+            metadata: {
+              gallery: {
+                images: images.map(img => ({
+                  url: img.url,
+                  description: img.description
+                }))
+              }
+            }
+          };
+        }
+      } catch (error) {
+        console.error('Error fetching images:', error);
+      }
+    }
+
+    return {
+      type: "text" as const,
+      content: message
+    };
+  };
+
   const handleSend = async () => {
     if (!inputValue.trim()) return;
 
+    const messageWithImages = await checkForImagesInMessage(inputValue);
+    
     const newMessage: Message = {
       id: Date.now().toString(),
-      content: inputValue,
-      type: "text",
+      ...messageWithImages,
       timestamp: Date.now(),
       sender: "user",
     };
@@ -189,7 +239,7 @@ export const ChatInterface = () => {
     try {
       const response = await sendMessage(
         inputValue,
-        "2941bb4a-cdf4-4677-8e0b-d1def860728d", // chatbot ID
+        "2941bb4a-cdf4-4677-8e0b-d1def860728d",
         currentLead?.id
       );
 
