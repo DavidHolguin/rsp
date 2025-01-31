@@ -188,10 +188,11 @@ export const ChatInterface = () => {
 
     if (hasImageKeyword) {
       try {
+        const searchQuery = words.join(' ');
         const { data: images, error } = await supabase
           .from('gallery_images')
           .select('url, description')
-          .textSearch('keywords', words.join(' '))
+          .textSearch('keywords_searchable', searchQuery)
           .limit(4);
 
         if (error) throw error;

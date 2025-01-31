@@ -759,6 +759,7 @@ export type Database = {
           gallery_id: string | null
           id: string
           keywords: string[] | null
+          keywords_searchable: unknown | null
           name: string | null
           position: number | null
           updated_at: string | null
@@ -770,6 +771,7 @@ export type Database = {
           gallery_id?: string | null
           id?: string
           keywords?: string[] | null
+          keywords_searchable?: unknown | null
           name?: string | null
           position?: number | null
           updated_at?: string | null
@@ -781,6 +783,7 @@ export type Database = {
           gallery_id?: string | null
           id?: string
           keywords?: string[] | null
+          keywords_searchable?: unknown | null
           name?: string | null
           position?: number | null
           updated_at?: string | null
