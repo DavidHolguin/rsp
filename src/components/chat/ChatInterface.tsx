@@ -22,6 +22,13 @@ const imageRelatedKeywords = [
   'picture', 'pictures', 'photo', 'photos'
 ];
 
+// Palabras comunes a ignorar
+const stopWords = [
+  'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'y', 'o', 'pero', 'si',
+  'de', 'del', 'al', 'a', 'ante', 'con', 'en', 'para', 'por', 'sin', 'sobre',
+  'quiero', 'ver', 'me', 'puedes', 'pueden', 'mostrar', 'enseñar', 'hay'
+];
+
 export const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -178,6 +185,20 @@ export const ChatInterface = () => {
     }
   }, [messages]);
 
+  const normalizeSearchQuery = (query: string): string => {
+    // Convertir a minúsculas y remover acentos
+    const normalized = query.toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+
+    // Dividir en palabras y filtrar stop words
+    const words = normalized.split(/\s+/)
+      .filter(word => !stopWords.includes(word));
+
+    // Unir palabras con operador & para tsquery
+    return words.join(' & ');
+  };
+
   const checkForImagesInMessage = async (message: string) => {
     const words = message.toLowerCase().split(/\s+/);
     const hasImageKeyword = words.some(word => 
@@ -188,14 +209,19 @@ export const ChatInterface = () => {
 
     if (hasImageKeyword) {
       try {
-        const searchQuery = words.join(' ');
+        const searchQuery = normalizeSearchQuery(message);
+        console.log('Normalized search query:', searchQuery); // Para debugging
+
         const { data: images, error } = await supabase
           .from('gallery_images')
           .select('url, description')
           .textSearch('keywords_searchable', searchQuery)
           .limit(4);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching images:', error);
+          throw error;
+        }
 
         if (images && images.length > 0) {
           return {
