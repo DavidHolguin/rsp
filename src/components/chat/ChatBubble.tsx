@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Message } from "@/types/chat";
 import { useEffect, useState, useRef } from "react";
-import { Play, Pause, Check } from "lucide-react";
+import { Play, Pause } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ImageGallery } from "./ImageGallery";
@@ -123,7 +123,7 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
           </div>
           <div className="flex justify-between text-xs mt-1 text-gray-200">
             <span>{formatTime(currentTime)}</span>
-            <span>{formatTime(duration)}</span>
+            <span>{formatMessageTime(message.timestamp)}</span>
           </div>
         </div>
       </div>
@@ -166,25 +166,12 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
               <span className="text-[11px] text-[#667781] dark:text-gray-400">
                 {formatMessageTime(message.timestamp)}
               </span>
-              <div className="flex -space-x-1">
-                <Check className="w-3 h-3 text-[#667781] dark:text-gray-400" />
-                <Check className="w-3 h-3 text-[#667781] dark:text-gray-400" />
-              </div>
             </div>
           </div>
         )}
         {message.type === "audio" && (
           <div className="space-y-1">
             {renderAudioPlayer()}
-            <div className="flex items-center justify-end gap-1">
-              <span className="text-[11px] text-[#667781] dark:text-gray-400">
-                {formatMessageTime(message.timestamp)}
-              </span>
-              <div className="flex -space-x-1">
-                <Check className="w-3 h-3 text-[#667781] dark:text-gray-400" />
-                <Check className="w-3 h-3 text-[#667781] dark:text-gray-400" />
-              </div>
-            </div>
           </div>
         )}
       </div>
