@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Sun, Moon, Menu, MessageSquarePlus } from "lucide-react";
 import { ChatBubble } from "./ChatBubble";
-import { AudioRecorder } from "./AudioRecorder";
+import { AudioRecorderWhatsApp } from "./AudioRecorderWhatsApp";
 import { ChatSidebar } from "./ChatSidebar";
 import { Message } from "@/types/chat";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ export const ChatInterface = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [chatbot, setChatbot] = useState<Chatbot | null>(null);
   const [lastMessageTime, setLastMessageTime] = useState<Date | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme, setTheme } = useTheme();
 
@@ -94,38 +95,14 @@ export const ChatInterface = () => {
     setMessages((prev) => [...prev, newMessage]);
     setInputValue("");
 
-    // Simulate agent response with gallery
+    // Simulate agent response
     setTimeout(() => {
       const agentResponse: Message = {
         id: (Date.now() + 1).toString(),
-        content: "Aquí tienes algunas imágenes de nuestra Suite Presidencial:",
-        type: "gallery",
+        content: "Gracias por tu mensaje. ¿En qué más puedo ayudarte?",
+        type: "text",
         timestamp: Date.now(),
         sender: "agent",
-        metadata: {
-          gallery: {
-            images: [
-              {
-                url: "https://example.com/suite1.jpg",
-                description: "Vista al mar",
-              },
-              {
-                url: "https://example.com/suite2.jpg",
-                description: "Baño de lujo",
-              },
-            ],
-          },
-          quickReplies: [
-            {
-              text: "Ver disponibilidad",
-              action: "check_availability",
-            },
-            {
-              text: "Hacer reserva",
-              action: "book_now",
-            },
-          ],
-        },
       };
       setMessages((prev) => [...prev, agentResponse]);
     }, 1000);
@@ -138,18 +115,34 @@ export const ChatInterface = () => {
     }
   };
 
-  const handleAudioRecorded = async (blob: Blob) => {
-    console.log("Audio recorded:", blob);
+  const handleAudioRecorded = async (audioBlob: Blob, transcription?: string) => {
+    const audioUrl = URL.createObjectURL(audioBlob);
     
     const newMessage: Message = {
       id: Date.now().toString(),
-      content: "🎤 Nota de voz",
+      content: audioUrl,
       type: "audio",
       timestamp: Date.now(),
       sender: "user",
+      metadata: transcription ? { transcription } : undefined
     };
 
     setMessages((prev) => [...prev, newMessage]);
+    setIsRecording(false);
+
+    if (transcription) {
+      // Simulate agent response to transcribed text
+      setTimeout(() => {
+        const agentResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          content: `He recibido tu mensaje de voz que dice: "${transcription}". ¿En qué puedo ayudarte?`,
+          type: "text",
+          timestamp: Date.now(),
+          sender: "agent",
+        };
+        setMessages((prev) => [...prev, agentResponse]);
+      }, 1000);
+    }
   };
 
   return (
@@ -182,7 +175,7 @@ export const ChatInterface = () => {
               )}
               <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-primary dark:border-gray-800"></div>
             </div>
-            <div className="flex flex-col items-start">
+            <div className="flex flex-col">
               <h1 className="text-lg font-semibold truncate max-w-[200px]">
                 {chatbot?.name || "Asistente Virtual"}
               </h1>
@@ -227,8 +220,15 @@ export const ChatInterface = () => {
             placeholder="Escribe un mensaje..."
             className="flex-1 dark:bg-gray-800 dark:text-white dark:border-gray-700"
           />
-          <AudioRecorder onAudioRecorded={handleAudioRecorded} />
-          <Button onClick={handleSend} className="bg-primary hover:bg-primary/90">
+          <AudioRecorderWhatsApp 
+            onAudioRecorded={handleAudioRecorded}
+            onCancel={() => setIsRecording(false)}
+          />
+          <Button 
+            onClick={handleSend} 
+            className="bg-primary hover:bg-primary/90"
+            disabled={isRecording}
+          >
             <Send className="w-5 h-5" />
           </Button>
         </div>

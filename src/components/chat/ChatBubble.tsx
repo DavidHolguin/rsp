@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
 import { Message } from "@/types/chat";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { MapPin } from "lucide-react";
+import { MapPin, Play, Pause, Volume2 } from "lucide-react";
 
 interface ChatBubbleProps {
   message: Message;
@@ -12,9 +12,14 @@ interface ChatBubbleProps {
 export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
   const [displayText, setDisplayText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const progressRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (isAgent && message.content) {
+    if (isAgent && message.content && message.type === "text") {
       let index = 0;
       setDisplayText("");
       
@@ -33,7 +38,90 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
       setDisplayText(message.content);
       setIsTyping(false);
     }
-  }, [message.content, isAgent]);
+  }, [message.content, isAgent, message.type]);
+
+  useEffect(() => {
+    if (message.type === "audio" && audioRef.current) {
+      audioRef.current.addEventListener("loadedmetadata", () => {
+        setDuration(audioRef.current?.duration || 0);
+      });
+
+      audioRef.current.addEventListener("timeupdate", () => {
+        setCurrentTime(audioRef.current?.currentTime || 0);
+      });
+
+      audioRef.current.addEventListener("ended", () => {
+        setIsPlaying(false);
+        setCurrentTime(0);
+      });
+    }
+  }, [message.type]);
+
+  const toggleAudio = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (audioRef.current && progressRef.current) {
+      const rect = progressRef.current.getBoundingClientRect();
+      const percent = (e.clientX - rect.left) / rect.width;
+      const time = percent * duration;
+      audioRef.current.currentTime = time;
+      setCurrentTime(time);
+    }
+  };
+
+  const renderAudioPlayer = () => {
+    if (message.type !== "audio") return null;
+
+    return (
+      <div className="flex items-center gap-3 min-w-[200px]">
+        <audio ref={audioRef} src={message.content} className="hidden" />
+        <button
+          onClick={toggleAudio}
+          className="p-2 rounded-full bg-primary text-white hover:bg-primary/90 transition-colors"
+        >
+          {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+        </button>
+        
+        <div className="flex-1">
+          <div
+            ref={progressRef}
+            className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full cursor-pointer"
+            onClick={handleProgressClick}
+          >
+            <div
+              className="h-full bg-primary rounded-full transition-all"
+              style={{ width: `${(currentTime / duration) * 100}%` }}
+            />
+          </div>
+          <div className="flex justify-between text-xs mt-1">
+            <span>{formatTime(currentTime)}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
+        </div>
+        
+        {message.metadata?.transcription && (
+          <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            {message.metadata.transcription}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderGallery = () => {
     if (!message.metadata?.gallery?.images?.length) return null;
@@ -122,6 +210,7 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
             )}
           </p>
         )}
+        {message.type === "audio" && renderAudioPlayer()}
         {message.type === "image" && (
           <img
             src={message.content}
