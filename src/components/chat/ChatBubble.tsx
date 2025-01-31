@@ -3,6 +3,8 @@ import { Message } from "@/types/chat";
 import { useEffect, useState, useRef } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { MapPin, Play, Pause } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface ChatBubbleProps {
   message: Message;
@@ -191,6 +193,10 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
     );
   };
 
+  const formatMessageTime = (timestamp: number) => {
+    return format(new Date(timestamp), "h:mm a", { locale: es });
+  };
+
   return (
     <div
       className={cn(
@@ -200,34 +206,65 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
     >
       <div
         className={cn(
-          "max-w-[80%] rounded-lg p-3 animate-slide-in",
+          "max-w-[80%] rounded-lg p-3 relative",
           isAgent
-            ? "bg-[#1F2C34] text-white rounded-tl-none"
-            : "bg-[#005C4B] text-white rounded-tr-none"
+            ? "bg-chat-bubble-dark-agent text-white rounded-tl-none"
+            : "bg-chat-bubble-dark-user text-white rounded-tr-none"
         )}
       >
         {message.type === "text" && (
-          <p className="text-sm whitespace-pre-wrap break-words">
-            {displayText}
-            {isTyping && (
-              <span className="inline-flex ml-2">
-                <span className="w-1 h-1 bg-gray-500 rounded-full mx-0.5 animate-typing-dot" style={{ animationDelay: "0s" }}></span>
-                <span className="w-1 h-1 bg-gray-500 rounded-full mx-0.5 animate-typing-dot" style={{ animationDelay: "0.2s" }}></span>
-                <span className="w-1 h-1 bg-gray-500 rounded-full mx-0.5 animate-typing-dot" style={{ animationDelay: "0.4s" }}></span>
-              </span>
-            )}
-          </p>
+          <div className="space-y-1">
+            <p className="text-sm whitespace-pre-wrap break-words">
+              {displayText}
+              {isTyping && (
+                <span className="inline-flex ml-2">
+                  <span className="w-1 h-1 bg-gray-500 rounded-full mx-0.5 animate-typing-dot" style={{ animationDelay: "0s" }}></span>
+                  <span className="w-1 h-1 bg-gray-500 rounded-full mx-0.5 animate-typing-dot" style={{ animationDelay: "0.2s" }}></span>
+                  <span className="w-1 h-1 bg-gray-500 rounded-full mx-0.5 animate-typing-dot" style={{ animationDelay: "0.4s" }}></span>
+                </span>
+              )}
+            </p>
+            <span className="text-[11px] opacity-60 block text-right">
+              {formatMessageTime(message.timestamp)}
+            </span>
+          </div>
         )}
-        {message.type === "audio" && renderAudioPlayer()}
+        {message.type === "audio" && (
+          <div className="space-y-2">
+            {renderAudioPlayer()}
+            <span className="text-[11px] opacity-60 block text-right">
+              {formatMessageTime(message.timestamp)}
+            </span>
+          </div>
+        )}
         {message.type === "image" && (
-          <img
-            src={message.content}
-            alt="Chat image"
-            className="max-w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-          />
+          <div className="space-y-1">
+            <img
+              src={message.content}
+              alt="Chat image"
+              className="max-w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+            />
+            <span className="text-[11px] opacity-60 block text-right">
+              {formatMessageTime(message.timestamp)}
+            </span>
+          </div>
         )}
-        {message.type === "gallery" && renderGallery()}
-        {message.type === "location" && renderLocation()}
+        {message.type === "gallery" && (
+          <div className="space-y-1">
+            {renderGallery()}
+            <span className="text-[11px] opacity-60 block text-right">
+              {formatMessageTime(message.timestamp)}
+            </span>
+          </div>
+        )}
+        {message.type === "location" && (
+          <div className="space-y-1">
+            {renderLocation()}
+            <span className="text-[11px] opacity-60 block text-right">
+              {formatMessageTime(message.timestamp)}
+            </span>
+          </div>
+        )}
         {renderQuickReplies()}
       </div>
     </div>

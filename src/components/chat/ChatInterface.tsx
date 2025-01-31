@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MoreVertical, Clock, Send } from "lucide-react";
+import { MoreVertical, Send, Smile } from "lucide-react";
 import { ChatBubble } from "./ChatBubble";
 import { AudioRecorderWhatsApp } from "./AudioRecorderWhatsApp";
 import { ChatSidebar } from "./ChatSidebar";
@@ -10,6 +10,8 @@ import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import EmojiPicker from 'emoji-picker-react';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -19,8 +21,10 @@ export const ChatInterface = () => {
   const [chatbot, setChatbot] = useState<Chatbot | null>(null);
   const [lastMessageTime, setLastMessageTime] = useState<Date | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchChatbotData = async () => {
@@ -140,25 +144,39 @@ export const ChatInterface = () => {
     }
   };
 
-  const formatLastMessageTime = (timestamp: number) => {
-    return formatDistanceToNow(new Date(timestamp), { 
-      addSuffix: true,
-      locale: es,
-    }).replace(/^./, str => str.toUpperCase());
+  const onEmojiClick = (emojiData: any) => {
+    const emoji = emojiData.emoji;
+    const cursorPosition = inputRef.current?.selectionStart || 0;
+    const updatedValue = 
+      inputValue.slice(0, cursorPosition) + 
+      emoji + 
+      inputValue.slice(cursorPosition);
+    setInputValue(updatedValue);
+    setShowEmojiPicker(false);
+    inputRef.current?.focus();
   };
 
   return (
     <div className="flex flex-col h-screen bg-[#0B141A] dark:bg-[#0B141A]">
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center p-4 bg-[#1F2C34] dark:bg-[#1F2C34] border-b dark:border-gray-700">
         <div className="flex items-center gap-4 flex-1">
+          {chatbot?.icon_url && (
+            <img 
+              src={chatbot.icon_url} 
+              alt={chatbot.name || "Chatbot"} 
+              className="w-10 h-10 rounded-full"
+            />
+          )}
           <div className="text-white">
             <h1 className="text-lg font-semibold truncate max-w-[200px]">
               {chatbot?.name || "Asistente Virtual"}
             </h1>
             {lastMessageTime && (
               <span className="text-xs text-gray-400 flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                {formatLastMessageTime(lastMessageTime.getTime())}
+                {formatDistanceToNow(lastMessageTime, { 
+                  addSuffix: true,
+                  locale: es,
+                })}
               </span>
             )}
           </div>
@@ -187,13 +205,38 @@ export const ChatInterface = () => {
 
       <div className="fixed bottom-0 left-0 right-0 p-4 border-t dark:border-gray-700 bg-[#1F2C34] dark:bg-[#1F2C34]">
         <div className="flex items-center space-x-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="text-gray-300 hover:text-gray-100"
+              >
+                <Smile className="h-5 w-5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent 
+              className="w-full p-0" 
+              side="top" 
+              align="start"
+            >
+              <EmojiPicker
+                onEmojiClick={onEmojiClick}
+                width="100%"
+                height="350px"
+              />
+            </PopoverContent>
+          </Popover>
+          
           <Input
+            ref={inputRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Escribe un mensaje..."
             className="flex-1 dark:bg-[#2A3942] dark:text-white dark:border-gray-700 rounded-full"
           />
+          
           {inputValue.trim() ? (
             <Button 
               onClick={handleSend} 
