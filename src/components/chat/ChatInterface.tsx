@@ -264,6 +264,7 @@ export const ChatInterface = () => {
 
       if (messageError) {
         console.error("Error storing message:", messageError);
+        throw messageError;
       }
 
       // Get chatbot response
@@ -273,6 +274,10 @@ export const ChatInterface = () => {
         currentLead.id,
         AGENCY_ID
       );
+
+      if (!response || !response.response) {
+        throw new Error("Invalid response from chatbot");
+      }
 
       const agentResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -298,6 +303,7 @@ export const ChatInterface = () => {
 
       if (botMessageError) {
         console.error("Error storing bot message:", botMessageError);
+        throw botMessageError;
       }
 
     } catch (error) {
