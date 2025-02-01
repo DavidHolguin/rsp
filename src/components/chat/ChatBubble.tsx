@@ -18,12 +18,10 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
   const [duration, setDuration] = useState(0);
 
   const bubbleClass = isAgent
-    ? "bg-chat-bubble-agent dark:bg-chat-bubble-dark-agent rounded-[0.85rem] rounded-tl-none max-w-[85%]"
-    : "bg-chat-bubble-user dark:bg-chat-bubble-dark-user ml-auto rounded-[0.85rem] rounded-tr-none max-w-[85%]";
+    ? "bg-[#202C33] dark:bg-[#202C33] rounded-[0.85rem] rounded-tl-none max-w-[85%]"
+    : "bg-[#005C4B] dark:bg-[#005C4B] ml-auto rounded-[0.85rem] rounded-tr-none max-w-[85%]";
 
-  const textColor = isAgent 
-    ? "text-gray-800 dark:text-gray-100" 
-    : "text-gray-800 dark:text-gray-100";
+  const textColor = "text-gray-100 dark:text-gray-100";
 
   const handlePlayPause = () => {
     if (audioRef.current) {
@@ -112,7 +110,7 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
                   />
                 </div>
               </div>
-              <span className="text-xs text-gray-500 min-w-[40px]">
+              <span className="text-xs text-gray-300 min-w-[40px]">
                 {formatTime(currentTime)}
               </span>
               <audio
@@ -125,7 +123,7 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
               />
             </div>
           )}
-          <span className="text-[11px] text-gray-500 float-right ml-2 mt-1">
+          <span className="text-[11px] text-gray-300 float-right ml-2 mt-1">
             {format(new Date(message.timestamp), "h:mm a", { locale: es })}
           </span>
         </div>
