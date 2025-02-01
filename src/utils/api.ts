@@ -11,7 +11,8 @@ export const sendMessage = async (
   const params = new URLSearchParams({
     chatbot_id: chatbotId,
     message: message,
-    channel: 'web'
+    channel: 'web',
+    agency_id: '2941bb4a-cdf4-4677-8e0b-d1def860728d' // Adding the required agency_id
   });
   
   if (leadId) {
