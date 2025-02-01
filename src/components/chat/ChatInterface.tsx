@@ -24,7 +24,7 @@ export const ChatInterface = () => {
   const { toast } = useToast();
 
   const { chatbot } = useChatbot(CHATBOT_ID);
-  const { messages, showGreeting, handleSend } = useChat(CHATBOT_ID, currentLead);
+  const { messages, showGreeting, handleSend, setMessages } = useChat(CHATBOT_ID, currentLead);
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {

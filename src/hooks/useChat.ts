@@ -164,6 +164,7 @@ export const useChat = (chatbotId: string, currentLead: { id: string; name: stri
     messages,
     lastMessageTime,
     showGreeting,
-    handleSend
+    handleSend,
+    setMessages
   };
 };
