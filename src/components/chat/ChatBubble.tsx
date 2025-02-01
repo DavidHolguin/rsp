@@ -18,8 +18,8 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
   const [duration, setDuration] = useState(0);
 
   const bubbleClass = isAgent
-    ? "bg-chat-bubble-agent dark:bg-chat-bubble-dark-agent rounded-tr-none"
-    : "bg-chat-bubble-user dark:bg-chat-bubble-dark-user ml-auto rounded-tl-none";
+    ? "bg-chat-bubble-agent dark:bg-chat-bubble-dark-agent rounded-[0.85rem] rounded-tl-none max-w-[85%]"
+    : "bg-chat-bubble-user dark:bg-chat-bubble-dark-user ml-auto rounded-[0.85rem] rounded-tr-none max-w-[85%]";
 
   const textColor = "text-gray-800 dark:text-gray-100";
 
@@ -53,11 +53,9 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
   };
 
   return (
-    <div className={`flex flex-col max-w-[85%] ${isAgent ? "" : "items-end"}`}>
-      <div
-        className={`px-3 py-2 ${bubbleClass} relative animate-slide-in shadow-sm`}
-      >
-        <div className={`${textColor} text-sm`}>
+    <div className={`flex flex-col ${isAgent ? "items-start" : "items-end"} w-full px-4`}>
+      <div className={`${bubbleClass} relative animate-slide-in shadow-sm`}>
+        <div className={`${textColor} text-sm px-3 py-2`}>
           {message.type === "text" && (
             <>
               <ReactMarkdown 
@@ -93,21 +91,21 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
             </>
           )}
           {message.type === "audio" && (
-            <div className="flex items-center gap-2 min-w-[180px] max-w-[280px]">
+            <div className="flex items-center gap-2 min-w-[180px] max-w-[280px] py-1">
               <button
                 onClick={handlePlayPause}
-                className="w-8 h-8 flex items-center justify-center bg-[#00A884] dark:bg-[#00A884] rounded-full text-white"
+                className="w-10 h-10 flex items-center justify-center bg-[#00A884] dark:bg-[#00A884] rounded-full text-white hover:bg-[#00A884]/90 transition-colors"
               >
                 {isPlaying ? (
-                  <Pause className="h-4 w-4" />
+                  <Pause className="h-5 w-5" />
                 ) : (
-                  <Play className="h-4 w-4 ml-0.5" />
+                  <Play className="h-5 w-5 ml-0.5" />
                 )}
               </button>
               <div className="flex-1">
-                <div className="w-full h-[4px] bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                <div className="w-full h-[4px] bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-[#00A884] dark:bg-[#00A884]"
+                    className="h-full bg-white dark:bg-white"
                     style={{ width: `${(currentTime / duration) * 100}%` }}
                   />
                 </div>
