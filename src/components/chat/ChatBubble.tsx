@@ -53,7 +53,7 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
   };
 
   return (
-    <div className={`flex flex-col ${isAgent ? "items-start" : "items-end"} w-full px-4`}>
+    <div className={`flex flex-col ${isAgent ? "items-start" : "items-end"} w-full px-2`}>
       <div className={`${bubbleClass} relative animate-slide-in shadow-sm`}>
         <div className={`${textColor} text-sm px-3 py-2`}>
           {message.type === "text" && (

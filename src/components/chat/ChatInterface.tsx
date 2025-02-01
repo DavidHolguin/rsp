@@ -493,7 +493,14 @@ export const ChatInterface = () => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#0B141A] dark:bg-[#0B141A] mt-[56px] mb-[72px]">
+      <div 
+        className="flex-1 overflow-y-auto p-4 space-y-4 mt-[56px] mb-[72px] bg-[#0B141A] dark:bg-[#0B141A]"
+        style={{
+          backgroundImage: 'url(https://static.whatsapp.net/rsrc.php/v4/yl/r/gi_DckOUM5a.png)',
+          backgroundSize: 'contain',
+          backgroundRepeat: 'repeat'
+        }}
+      >
         {messages.map((message) => (
           <ChatBubble
             key={message.id}
