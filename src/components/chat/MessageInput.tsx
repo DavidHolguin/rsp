@@ -37,30 +37,6 @@ export const MessageInput = ({
   return (
     <div className="fixed bottom-0 left-0 right-0 p-3 border-t dark:border-gray-700/50 bg-[#1F2C34] dark:bg-[#1F2C34]">
       <div className="flex items-center gap-2 mx-auto max-w-4xl">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className="text-gray-400 hover:text-gray-300 hover:bg-[#2A3942]"
-            >
-              <Smile className="h-6 w-6" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent 
-            className="w-full p-0 border-none shadow-lg" 
-            side="top" 
-            align="start"
-            sideOffset={16}
-          >
-            <EmojiPicker
-              onEmojiClick={handleEmojiClick}
-              width="100%"
-              height="350px"
-            />
-          </PopoverContent>
-        </Popover>
-        
         <div className="flex-1 relative">
           <Input
             ref={inputRef}
@@ -68,8 +44,31 @@ export const MessageInput = ({
             onChange={(e) => onChange(e.target.value)}
             onKeyPress={onKeyPress}
             placeholder="Mensaje"
-            className="w-full dark:bg-[#2A3942] dark:text-white border-none rounded-2xl pl-4 pr-12 py-6 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="w-full dark:bg-[#2A3942] dark:text-white border-none rounded-2xl pl-12 pr-12 py-6 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
           />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="absolute left-1 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300 hover:bg-[#2A3942] h-10 w-10"
+              >
+                <Smile className="h-6 w-6" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent 
+              className="w-full p-0 border-none shadow-lg" 
+              side="top" 
+              align="start"
+              sideOffset={16}
+            >
+              <EmojiPicker
+                onEmojiClick={handleEmojiClick}
+                width="100%"
+                height="350px"
+              />
+            </PopoverContent>
+          </Popover>
         </div>
         
         {value.trim() ? (
