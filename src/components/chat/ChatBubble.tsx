@@ -21,7 +21,9 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
     ? "bg-chat-bubble-agent dark:bg-chat-bubble-dark-agent rounded-[0.85rem] rounded-tl-none max-w-[85%]"
     : "bg-chat-bubble-user dark:bg-chat-bubble-dark-user ml-auto rounded-[0.85rem] rounded-tr-none max-w-[85%]";
 
-  const textColor = "text-gray-800 dark:text-gray-100";
+  const textColor = isAgent 
+    ? "text-gray-800 dark:text-gray-100" 
+    : "text-gray-800 dark:text-gray-100";
 
   const handlePlayPause = () => {
     if (audioRef.current) {
@@ -53,8 +55,8 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
   };
 
   return (
-    <div className={`flex flex-col ${isAgent ? "items-start" : "items-end"} w-full px-2`}>
-      <div className={`${bubbleClass} relative animate-slide-in shadow-sm`}>
+    <div className={`flex flex-col ${isAgent ? "items-start" : "items-end"} w-full px-2 mb-2`}>
+      <div className={`${bubbleClass} relative`}>
         <div className={`${textColor} text-sm px-3 py-2`}>
           {message.type === "text" && (
             <>
