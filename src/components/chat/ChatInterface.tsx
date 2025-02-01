@@ -28,9 +28,12 @@ export const ChatInterface = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [currentLead, setCurrentLead] = useState<{ id: string; name: string } | null>(null);
   const [sessionStartTime] = useState<Date>(new Date());
+  const [lastMessageTime, setLastMessageTime] = useState<Date | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { theme } = useTheme();
   const inputRef = useRef<HTMLInputElement>(null);
+  const { theme } = useTheme();
   const { toast } = useToast();
 
   // Initialize lead tracking session
