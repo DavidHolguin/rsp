@@ -43,23 +43,42 @@ export const ChatInterface = () => {
   }, []);
 
   const fetchChatbotData = async () => {
-    const { data } = await supabase
-      .from("chatbots")
-      .select("name, icon_url, description")
-      .eq("id", CHATBOT_ID)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("chatbots")
+        .select("name, icon_url, description")
+        .eq("id", CHATBOT_ID)
+        .maybeSingle();
 
-    if (data) {
-      setChatbot(data);
-      document.title = data.name || "Chat Asistente Virtual";
-      const metaDescription = document.querySelector('meta[name="description"]');
-      if (metaDescription) {
-        metaDescription.setAttribute('content', data.description || "Asistente virtual para consultas y reservas");
+      if (error) {
+        console.error("Error fetching chatbot data:", error);
+        toast({
+          title: "Error",
+          description: "No se pudo cargar la información del chatbot",
+          variant: "destructive",
+        });
+        return;
       }
-      const metaTheme = document.querySelector('meta[name="theme-color"]');
-      if (metaTheme) {
-        metaTheme.setAttribute('content', theme === 'dark' ? '#1F2937' : '#ffffff');
+
+      if (data) {
+        setChatbot(data);
+        document.title = data.name || "Chat Asistente Virtual";
+        const metaDescription = document.querySelector('meta[name="description"]');
+        if (metaDescription) {
+          metaDescription.setAttribute('content', data.description || "Asistente virtual para consultas y reservas");
+        }
+        const metaTheme = document.querySelector('meta[name="theme-color"]');
+        if (metaTheme) {
+          metaTheme.setAttribute('content', theme === 'dark' ? '#1F2937' : '#ffffff');
+        }
       }
+    } catch (error) {
+      console.error("Error in fetchChatbotData:", error);
+      toast({
+        title: "Error",
+        description: "Hubo un problema al conectar con el servidor",
+        variant: "destructive",
+      });
     }
   };
 
@@ -291,7 +310,12 @@ export const ChatInterface = () => {
 
       if (messageError) {
         console.error("Error storing message:", messageError);
-        throw messageError;
+        toast({
+          title: "Error",
+          description: "No se pudo guardar el mensaje",
+          variant: "destructive",
+        });
+        return;
       }
 
       // Get chatbot response from API
@@ -366,7 +390,11 @@ export const ChatInterface = () => {
 
       if (botMessageError) {
         console.error("Error storing bot message:", botMessageError);
-        throw botMessageError;
+        toast({
+          title: "Error",
+          description: "No se pudo guardar la respuesta del chatbot",
+          variant: "destructive",
+        });
       }
 
     } catch (error) {
