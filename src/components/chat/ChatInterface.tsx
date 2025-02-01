@@ -56,6 +56,10 @@ export const ChatInterface = () => {
       if (metaDescription) {
         metaDescription.setAttribute('content', data.description || "Asistente virtual para consultas y reservas");
       }
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) {
+        metaTheme.setAttribute('content', theme === 'dark' ? '#1F2937' : '#ffffff');
+      }
     }
   };
 
@@ -219,27 +223,6 @@ export const ChatInterface = () => {
         description: "Hubo un problema al guardar tus datos. Por favor intenta nuevamente.",
         variant: "destructive",
       });
-    }
-  };
-
-  const fetchChatbotData = async () => {
-    const { data } = await supabase
-      .from("chatbots")
-      .select("name, icon_url, description")
-      .eq("id", CHATBOT_ID)
-      .single();
-
-    if (data) {
-      setChatbot(data);
-      document.title = data.name || "Chat Asistente Virtual";
-      const metaDescription = document.querySelector('meta[name="description"]');
-      if (metaDescription) {
-        metaDescription.setAttribute('content', data.description || "Asistente virtual para consultas y reservas");
-      }
-      const metaTheme = document.querySelector('meta[name="theme-color"]');
-      if (metaTheme) {
-        metaTheme.setAttribute('content', theme === 'dark' ? '#1F2937' : '#ffffff');
-      }
     }
   };
 
