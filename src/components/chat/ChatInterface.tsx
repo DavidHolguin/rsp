@@ -458,7 +458,7 @@ export const ChatInterface = () => {
   return (
     <div className="flex flex-col h-screen bg-[#0B141A] dark:bg-[#0B141A]">
       {/* Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex items-center p-2 bg-[#1F2C34] dark:bg-[#1F2C34] border-b dark:border-gray-700">
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center p-3 bg-[#1F2C34] dark:bg-[#1F2C34] border-b dark:border-gray-700">
         <div className="flex items-center gap-3 flex-1">
           <div className="relative">
             {chatbot?.icon_url && (
@@ -466,18 +466,18 @@ export const ChatInterface = () => {
                 <img 
                   src={chatbot.icon_url} 
                   alt={chatbot.name || "Chatbot"} 
-                  className="w-8 h-8 rounded-full"
+                  className="w-10 h-10 rounded-full object-cover"
                 />
                 <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-[#00A884] rounded-full border-2 border-[#1F2C34]" />
               </>
             )}
           </div>
           <div className="text-white">
-            <h1 className="text-base font-semibold truncate max-w-[200px]">
+            <h1 className="text-base font-medium leading-tight">
               {chatbot?.name || "Asistente Virtual"}
             </h1>
-            <p className="text-xs text-gray-400 truncate max-w-[200px]">
-              {chatbot?.description || "Disponible"}
+            <p className="text-xs text-gray-400">
+              {chatbot?.description || "En línea"}
             </p>
           </div>
         </div>

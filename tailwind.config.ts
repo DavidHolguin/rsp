@@ -29,7 +29,7 @@ export default {
             }
           },
           audio: {
-            waveform: "#25D366",
+            waveform: "#00A884",
             background: "#FFFFFF",
             dark: {
               waveform: "#00A884",
