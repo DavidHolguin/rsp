@@ -47,10 +47,17 @@ export const ChatSidebar = ({ open, onClose }: ChatSidebarProps) => {
     };
 
     const fetchConversations = async () => {
+      // Get current lead from localStorage
+      const storedLead = localStorage.getItem('currentLead');
+      if (!storedLead) return;
+
+      const currentLead = JSON.parse(storedLead);
+
       const { data } = await supabase
         .from("chat_conversations")
         .select("id, title, created_at")
         .eq("chatbot_id", "2941bb4a-cdf4-4677-8e0b-d1def860728d")
+        .eq("lead_id", currentLead.id)
         .order("created_at", { ascending: false });
 
       if (data) {
