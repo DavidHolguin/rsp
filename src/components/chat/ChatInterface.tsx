@@ -38,6 +38,27 @@ export const ChatInterface = () => {
   const { theme } = useTheme();
   const { toast } = useToast();
 
+  useEffect(() => {
+    fetchChatbotData();
+  }, []);
+
+  const fetchChatbotData = async () => {
+    const { data } = await supabase
+      .from("chatbots")
+      .select("name, icon_url, description")
+      .eq("id", CHATBOT_ID)
+      .single();
+
+    if (data) {
+      setChatbot(data);
+      document.title = data.name || "Chat Asistente Virtual";
+      const metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) {
+        metaDescription.setAttribute('content', data.description || "Asistente virtual para consultas y reservas");
+      }
+    }
+  };
+
   // Initialize lead tracking session
   useEffect(() => {
     const initializeLeadTracking = async (leadId: string) => {
@@ -484,7 +505,7 @@ export const ChatInterface = () => {
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center p-3 bg-[#1F2C34] dark:bg-[#1F2C34] border-b dark:border-gray-700">
         <div className="flex items-center gap-3 flex-1">
           <div className="relative">
-            {chatbot?.icon_url && (
+            {chatbot?.icon_url ? (
               <>
                 <img 
                   src={chatbot.icon_url} 
@@ -493,6 +514,12 @@ export const ChatInterface = () => {
                 />
                 <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-[#00A884] rounded-full border-2 border-[#1F2C34]" />
               </>
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center">
+                <span className="text-white text-sm">
+                  {chatbot?.name?.charAt(0) || 'A'}
+                </span>
+              </div>
             )}
           </div>
           <div className="text-white">
