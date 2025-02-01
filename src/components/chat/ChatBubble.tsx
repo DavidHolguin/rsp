@@ -18,8 +18,8 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
   const [duration, setDuration] = useState(0);
 
   const bubbleClass = isAgent
-    ? "bg-[#202C33] dark:bg-[#202C33] rounded-[0.85rem] rounded-tl-none max-w-[85%]"
-    : "bg-[#005C4B] dark:bg-[#005C4B] ml-auto rounded-[0.85rem] rounded-tr-none max-w-[85%]";
+    ? "bg-[#202C33] dark:bg-[#202C33] rounded-[7px] rounded-tl-none max-w-[85%]"
+    : "bg-[#005C4B] dark:bg-[#005C4B] ml-auto rounded-[7px] rounded-tr-none max-w-[85%]";
 
   const textColor = "text-gray-100 dark:text-gray-100";
 
@@ -53,9 +53,9 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
   };
 
   return (
-    <div className={`flex flex-col ${isAgent ? "items-start" : "items-end"} w-full px-2 mb-2`}>
+    <div className={`flex flex-col ${isAgent ? "items-start" : "items-end"} w-full px-2 mb-[2px]`}>
       <div className={`${bubbleClass} relative`}>
-        <div className={`${textColor} text-sm px-3 py-2`}>
+        <div className={`${textColor} text-sm px-[9px] py-[6px]`}>
           {message.type === "text" && (
             <>
               <ReactMarkdown 
