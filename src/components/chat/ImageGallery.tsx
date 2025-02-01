@@ -65,10 +65,10 @@ export const ImageGallery = ({ images, layout = "grid" }: ImageGalleryProps) => 
           </button>
           <Carousel
             className="w-full h-full"
-            defaultSlide={selectedImageIndex}
             opts={{
               align: "center",
               loop: true,
+              startIndex: selectedImageIndex
             }}
           >
             <CarouselContent className="h-full">
