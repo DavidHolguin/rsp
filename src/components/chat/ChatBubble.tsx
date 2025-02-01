@@ -17,7 +17,7 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  const bubbleClass = isAgent
+  const bubbleClass = message.sender === "agent"
     ? "bg-[#202C33] dark:bg-[#202C33] rounded-[7px] rounded-tl-none max-w-[85%] self-start"
     : "bg-[#005C4B] dark:bg-[#005C4B] rounded-[7px] rounded-tr-none max-w-[85%] self-end";
 
@@ -54,7 +54,7 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
 
   return (
     <div className="flex flex-col w-full px-2 mb-[2px]">
-      <div className={`${bubbleClass} relative`}>
+      <div className={bubbleClass}>
         <div className={`${textColor} text-sm px-[9px] py-[6px]`}>
           {message.type === "text" && (
             <>
