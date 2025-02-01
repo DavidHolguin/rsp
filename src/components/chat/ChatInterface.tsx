@@ -83,6 +83,16 @@ export const ChatInterface = () => {
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
+      // First check localStorage for existing lead
+      const storedLead = localStorage.getItem('currentLead');
+      if (storedLead) {
+        const parsedLead = JSON.parse(storedLead);
+        setCurrentLead(parsedLead);
+        showGreeting(parsedLead.name);
+        return;
+      }
+
+      // If no stored lead, check database
       const { data: existingLead } = await supabase
         .from("leads")
         .select("id, name, has_completed_onboarding")
@@ -94,7 +104,10 @@ export const ChatInterface = () => {
       if (!existingLead || !existingLead.has_completed_onboarding) {
         setShowOnboarding(true);
       } else {
-        setCurrentLead({ id: existingLead.id, name: existingLead.name });
+        const leadData = { id: existingLead.id, name: existingLead.name };
+        setCurrentLead(leadData);
+        // Store lead data in localStorage
+        localStorage.setItem('currentLead', JSON.stringify(leadData));
         showGreeting(existingLead.name);
       }
     };
@@ -154,7 +167,10 @@ export const ChatInterface = () => {
         })
         .eq("id", leadId);
 
-      setCurrentLead({ id: leadId, name });
+      const leadData = { id: leadId, name };
+      setCurrentLead(leadData);
+      // Store lead data in localStorage
+      localStorage.setItem('currentLead', JSON.stringify(leadData));
       setShowOnboarding(false);
       showGreeting(name);
 
