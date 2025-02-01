@@ -234,15 +234,22 @@ export const ChatInterface = () => {
 
   useEffect(() => {
     if (!isInitialized) {
-      setMessages([
-        {
-          id: "welcome",
-          content: "¡Hola! Por favor, comparte tu nombre y número de teléfono para comenzar.",
-          type: "text",
-          timestamp: Date.now(),
-          sender: "agent",
-        },
-      ]);
+      // Verificar si tenemos datos del lead en localStorage
+      const storedLead = localStorage.getItem('currentLead');
+      if (storedLead) {
+        const parsedLead = JSON.parse(storedLead);
+        showGreeting(parsedLead.name);
+      } else {
+        setMessages([
+          {
+            id: "welcome",
+            content: "¡Hola! Por favor, comparte tu nombre y número de teléfono para comenzar.",
+            type: "text",
+            timestamp: Date.now(),
+            sender: "agent",
+          },
+        ]);
+      }
       setIsInitialized(true);
     }
   }, [isInitialized]);
