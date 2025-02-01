@@ -17,18 +17,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/components/ui/use-toast";
 import { sendMessage } from "@/utils/api";
 
-const imageRelatedKeywords = [
-  'imagen', 'imágenes', 'foto', 'fotos', 'fotografía', 'fotografías',
-  'selfie', 'selfies', 'video', 'videos', 'galería', 'gallery',
-  'picture', 'pictures', 'photo', 'photos'
-];
-
-const stopWords = [
-  'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'y', 'o', 'pero', 'si',
-  'de', 'del', 'al', 'a', 'ante', 'con', 'en', 'para', 'por', 'sin', 'sobre',
-  'quiero', 'ver', 'me', 'puedes', 'pueden', 'mostrar', 'enseñar', 'hay'
-];
-
 const timeZone = 'America/Bogota';
 
 export const ChatInterface = () => {
@@ -37,15 +25,56 @@ export const ChatInterface = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [chatbot, setChatbot] = useState<Chatbot | null>(null);
-  const [lastMessageTime, setLastMessageTime] = useState<Date | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [currentLead, setCurrentLead] = useState<{ id: string; name: string } | null>(null);
+  const [sessionStartTime] = useState<Date>(new Date());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Initialize lead tracking session
+  useEffect(() => {
+    const initializeLeadTracking = async (leadId: string) => {
+      const { error } = await supabase
+        .from('lead_tracking')
+        .insert({
+          lead_id: leadId,
+          session_start: new Date().toISOString(),
+          page_views: [{ path: window.location.pathname, timestamp: new Date().toISOString() }],
+          interactions: []
+        });
+
+      if (error) {
+        console.error('Error initializing lead tracking:', error);
+      }
+    };
+
+    if (currentLead?.id) {
+      initializeLeadTracking(currentLead.id);
+    }
+
+    // Cleanup function to update session end time
+    return () => {
+      if (currentLead?.id) {
+        updateLeadSession(currentLead.id);
+      }
+    };
+  }, [currentLead?.id]);
+
+  const updateLeadSession = async (leadId: string) => {
+    const { error } = await supabase
+      .from('lead_tracking')
+      .update({
+        session_end: new Date().toISOString(),
+      })
+      .eq('lead_id', leadId)
+      .is('session_end', null);
+
+    if (error) {
+      console.error('Error updating lead session:', error);
+    }
+  };
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
@@ -97,7 +126,8 @@ export const ChatInterface = () => {
         throw new Error("Agency not found. Please contact support.");
       }
 
-      const { data: lead, error } = await supabase.rpc(
+      // Create or update lead using the RPC function
+      const { data: leadId, error } = await supabase.rpc(
         "create_or_update_lead",
         {
           p_name: name,
@@ -110,14 +140,31 @@ export const ChatInterface = () => {
 
       if (error) throw error;
 
+      // Update lead status
       await supabase
         .from("leads")
-        .update({ has_completed_onboarding: true })
-        .eq("id", lead);
+        .update({ 
+          has_completed_onboarding: true,
+          last_greeting_at: new Date().toISOString()
+        })
+        .eq("id", leadId);
 
-      setCurrentLead({ id: lead, name });
+      setCurrentLead({ id: leadId, name });
       setShowOnboarding(false);
       showGreeting(name);
+
+      // Create initial conversation
+      const { error: convError } = await supabase
+        .from("chat_conversations")
+        .insert({
+          chatbot_id: "2941bb4a-cdf4-4677-8e0b-d1def860728d",
+          lead_id: leadId,
+          title: `Conversación con ${name}`
+        });
+
+      if (convError) {
+        console.error("Error creating conversation:", convError);
+      }
 
       toast({
         title: "¡Bienvenido!",
@@ -133,30 +180,26 @@ export const ChatInterface = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchChatbotData = async () => {
-      const { data } = await supabase
-        .from("chatbots")
-        .select("name, icon_url, description")
-        .eq("id", "2941bb4a-cdf4-4677-8e0b-d1def860728d")
-        .single();
+  const fetchChatbotData = async () => {
+    const { data } = await supabase
+      .from("chatbots")
+      .select("name, icon_url, description")
+      .eq("id", "2941bb4a-cdf4-4677-8e0b-d1def860728d")
+      .single();
 
-      if (data) {
-        setChatbot(data);
-        document.title = data.name || "Chat Asistente Virtual";
-        const metaDescription = document.querySelector('meta[name="description"]');
-        if (metaDescription) {
-          metaDescription.setAttribute('content', data.description || "Asistente virtual para consultas y reservas");
-        }
-        const metaTheme = document.querySelector('meta[name="theme-color"]');
-        if (metaTheme) {
-          metaTheme.setAttribute('content', theme === 'dark' ? '#1F2937' : '#ffffff');
-        }
+    if (data) {
+      setChatbot(data);
+      document.title = data.name || "Chat Asistente Virtual";
+      const metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) {
+        metaDescription.setAttribute('content', data.description || "Asistente virtual para consultas y reservas");
       }
-    };
-
-    fetchChatbotData();
-  }, [theme]);
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) {
+        metaTheme.setAttribute('content', theme === 'dark' ? '#1F2937' : '#ffffff');
+      }
+    }
+  };
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -189,74 +232,13 @@ export const ChatInterface = () => {
     }
   }, [messages]);
 
-  const normalizeSearchQuery = (query: string): string => {
-    const normalized = query.toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-
-    const words = normalized.split(/\s+/)
-      .filter(word => !stopWords.includes(word));
-
-    return words.join(' & ');
-  };
-
-  const checkForImagesInMessage = async (message: string) => {
-    const words = message.toLowerCase().split(/\s+/);
-    const hasImageKeyword = words.some(word => 
-      imageRelatedKeywords.some(keyword => 
-        word.includes(keyword.toLowerCase())
-      )
-    );
-
-    if (hasImageKeyword) {
-      try {
-        const searchQuery = normalizeSearchQuery(message);
-        console.log('Normalized search query:', searchQuery);
-
-        const { data: images, error } = await supabase
-          .from('gallery_images')
-          .select('url, description')
-          .textSearch('keywords_searchable', searchQuery)
-          .limit(4);
-
-        if (error) {
-          console.error('Error fetching images:', error);
-          throw error;
-        }
-
-        if (images && images.length > 0) {
-          return {
-            type: "text" as const,
-            content: message,
-            metadata: {
-              gallery: {
-                images: images.map(img => ({
-                  url: img.url,
-                  description: img.description || ''
-                }))
-              }
-            }
-          };
-        }
-      } catch (error) {
-        console.error('Error fetching images:', error);
-      }
-    }
-
-    return {
-      type: "text" as const,
-      content: message
-    };
-  };
-
   const handleSend = async () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || !currentLead) return;
 
-    const messageWithImages = await checkForImagesInMessage(inputValue);
-    
     const newMessage: Message = {
       id: Date.now().toString(),
-      ...messageWithImages,
+      content: inputValue,
+      type: "text",
       timestamp: Date.now(),
       sender: "user",
     };
@@ -265,10 +247,25 @@ export const ChatInterface = () => {
     setInputValue("");
 
     try {
+      // Store user message in Supabase
+      const { error: messageError } = await supabase
+        .from("chat_messages")
+        .insert({
+          chatbot_id: "2941bb4a-cdf4-4677-8e0b-d1def860728d",
+          lead_id: currentLead.id,
+          message: inputValue,
+          is_bot: false
+        });
+
+      if (messageError) {
+        console.error("Error storing message:", messageError);
+      }
+
+      // Get chatbot response
       const response = await sendMessage(
         inputValue,
         "2941bb4a-cdf4-4677-8e0b-d1def860728d",
-        currentLead?.id
+        currentLead.id
       );
 
       const agentResponse: Message = {
@@ -281,6 +278,22 @@ export const ChatInterface = () => {
       };
 
       setMessages((prev) => [...prev, agentResponse]);
+
+      // Store bot response in Supabase
+      const { error: botMessageError } = await supabase
+        .from("chat_messages")
+        .insert({
+          chatbot_id: "2941bb4a-cdf4-4677-8e0b-d1def860728d",
+          lead_id: currentLead.id,
+          message: response.response,
+          is_bot: true,
+          metadata: response.metadata
+        });
+
+      if (botMessageError) {
+        console.error("Error storing bot message:", botMessageError);
+      }
+
     } catch (error) {
       console.error("Error sending message:", error);
       toast({
