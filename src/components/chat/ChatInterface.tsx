@@ -374,25 +374,64 @@ export const ChatInterface = () => {
     setMessages((prev) => [...prev, newMessage]);
     setIsRecording(false);
 
-    if (transcription) {
+    if (transcription && currentLead) {
       try {
-        const response = await sendMessage(
-          transcription,
-          CHATBOT_ID,
-          currentLead?.id,
-          AGENCY_ID
+        const response = await fetch(
+          `${API_BASE_URL}/api/v1/send-message?` +
+          new URLSearchParams({
+            agency_id: AGENCY_ID,
+            chatbot_id: CHATBOT_ID,
+            message: transcription,
+            lead_id: currentLead.id,
+            channel: 'web'
+          })
         );
 
-        const agentResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          content: response.response,
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${await response.text()}`);
+        }
+
+        const data = await response.json();
+
+        if (!data || !data.text) {
+          throw new Error("Invalid response format from chatbot");
+        }
+
+        // Create text message
+        const textMessage: Message = {
+          id: `${Date.now()}-text`,
+          content: data.text,
           type: "text",
-          timestamp: Date.now(),
+          timestamp: new Date(data.timestamp).getTime(),
           sender: "agent",
-          metadata: response.metadata
         };
 
-        setMessages((prev) => [...prev, agentResponse]);
+        setMessages(prev => [...prev, textMessage]);
+
+        // If there are galleries, create separate image messages
+        if (data.galleries && data.galleries.length > 0) {
+          data.galleries.forEach((gallery: any) => {
+            if (gallery.images && gallery.images.length > 0) {
+              const imageMessage: Message = {
+                id: `${Date.now()}-gallery-${gallery.id}`,
+                content: "",
+                type: "text",
+                timestamp: new Date(data.timestamp).getTime() + 100,
+                sender: "agent",
+                metadata: {
+                  gallery: {
+                    images: gallery.images.map((img: any) => ({
+                      url: img.url,
+                      description: img.description || img.name
+                    }))
+                  }
+                }
+              };
+              setMessages(prev => [...prev, imageMessage]);
+            }
+          });
+        }
+
       } catch (error) {
         console.error("Error sending transcribed message:", error);
         toast({
