@@ -2182,6 +2182,17 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      search_image_galleries: {
+        Args: {
+          search_keywords: string
+        }
+        Returns: {
+          id: number
+          url: string
+          name: string
+          description: string
+        }[]
+      }
       search_memories: {
         Args: {
           search_query: string
