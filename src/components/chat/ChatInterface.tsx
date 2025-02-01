@@ -15,10 +15,10 @@ import { toZonedTime } from 'date-fns-tz';
 import EmojiPicker from 'emoji-picker-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/use-toast";
-import { sendMessage } from "@/utils/api";
 
 const AGENCY_ID = "157597a6-8ba8-4d8e-8bd9-a8b325c8b05b";
 const CHATBOT_ID = "2941bb4a-cdf4-4677-8e0b-d1def860728d";
+const API_BASE_URL = "https://web-production-700a.up.railway.app";
 const timeZone = 'America/Bogota';
 
 export const ChatInterface = () => {
@@ -240,7 +240,7 @@ export const ChatInterface = () => {
   const handleSend = async () => {
     if (!inputValue.trim() || !currentLead) return;
 
-    const newMessage: Message = {
+    const userMessage: Message = {
       id: Date.now().toString(),
       content: inputValue,
       type: "text",
@@ -248,7 +248,7 @@ export const ChatInterface = () => {
       sender: "user",
     };
 
-    setMessages((prev) => [...prev, newMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
 
     try {
@@ -267,28 +267,62 @@ export const ChatInterface = () => {
         throw messageError;
       }
 
-      // Get chatbot response
-      const response = await sendMessage(
-        inputValue,
-        CHATBOT_ID,
-        currentLead.id,
-        AGENCY_ID
+      // Get chatbot response from API
+      const response = await fetch(
+        `${API_BASE_URL}/api/v1/send-message?` +
+        new URLSearchParams({
+          agency_id: AGENCY_ID,
+          chatbot_id: CHATBOT_ID,
+          message: inputValue,
+          lead_id: currentLead.id,
+          channel: 'web'
+        })
       );
 
-      if (!response || !response.response) {
-        throw new Error("Invalid response from chatbot");
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${await response.text()}`);
       }
 
-      const agentResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: response.response,
+      const data = await response.json();
+
+      if (!data || !data.text) {
+        throw new Error("Invalid response format from chatbot");
+      }
+
+      // Create text message
+      const textMessage: Message = {
+        id: `${Date.now()}-text`,
+        content: data.text,
         type: "text",
-        timestamp: Date.now(),
+        timestamp: new Date(data.timestamp).getTime(),
         sender: "agent",
-        metadata: response.metadata
       };
 
-      setMessages((prev) => [...prev, agentResponse]);
+      setMessages(prev => [...prev, textMessage]);
+
+      // If there are galleries, create separate image messages
+      if (data.galleries && data.galleries.length > 0) {
+        data.galleries.forEach((gallery: any) => {
+          if (gallery.images && gallery.images.length > 0) {
+            const imageMessage: Message = {
+              id: `${Date.now()}-gallery-${gallery.id}`,
+              content: "",
+              type: "text",
+              timestamp: new Date(data.timestamp).getTime() + 100,
+              sender: "agent",
+              metadata: {
+                gallery: {
+                  images: gallery.images.map((img: any) => ({
+                    url: img.url,
+                    description: img.description || img.name
+                  }))
+                }
+              }
+            };
+            setMessages(prev => [...prev, imageMessage]);
+          }
+        });
+      }
 
       // Store bot response in Supabase
       const { error: botMessageError } = await supabase
@@ -296,9 +330,11 @@ export const ChatInterface = () => {
         .insert({
           chatbot_id: CHATBOT_ID,
           lead_id: currentLead.id,
-          message: response.response,
+          message: data.text,
           is_bot: true,
-          metadata: response.metadata
+          metadata: {
+            galleries: data.galleries
+          }
         });
 
       if (botMessageError) {
@@ -382,6 +418,7 @@ export const ChatInterface = () => {
 
   return (
     <div className="flex flex-col h-screen bg-[#0B141A] dark:bg-[#0B141A]">
+      {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center p-2 bg-[#1F2C34] dark:bg-[#1F2C34] border-b dark:border-gray-700">
         <div className="flex items-center gap-3 flex-1">
           <div className="relative">
@@ -416,6 +453,7 @@ export const ChatInterface = () => {
         </Button>
       </div>
 
+      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#0B141A] dark:bg-[#0B141A] mt-[56px] mb-[72px]">
         {messages.map((message) => (
           <ChatBubble
@@ -427,6 +465,7 @@ export const ChatInterface = () => {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Input Area */}
       <div className="fixed bottom-0 left-0 right-0 p-4 border-t dark:border-gray-700 bg-[#1F2C34] dark:bg-[#1F2C34]">
         <div className="flex items-center space-x-2">
           <Popover>
