@@ -17,6 +17,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/components/ui/use-toast";
 import { sendMessage } from "@/utils/api";
 
+const AGENCY_ID = "157597a6-8ba8-4d8e-8bd9-a8b325c8b05b";
+const CHATBOT_ID = "2941bb4a-cdf4-4677-8e0b-d1def860728d";
 const timeZone = 'America/Bogota';
 
 export const ChatInterface = () => {
@@ -122,7 +124,7 @@ export const ChatInterface = () => {
       const { data: agency, error: agencyError } = await supabase
         .from("agencies")
         .select("id")
-        .eq("id", "2941bb4a-cdf4-4677-8e0b-d1def860728d")
+        .eq("id", AGENCY_ID)
         .single();
 
       if (agencyError || !agency) {
@@ -160,7 +162,7 @@ export const ChatInterface = () => {
       const { error: convError } = await supabase
         .from("chat_conversations")
         .insert({
-          chatbot_id: "2941bb4a-cdf4-4677-8e0b-d1def860728d",
+          chatbot_id: CHATBOT_ID,
           lead_id: leadId,
           title: `Conversación con ${name}`
         });
@@ -187,7 +189,7 @@ export const ChatInterface = () => {
     const { data } = await supabase
       .from("chatbots")
       .select("name, icon_url, description")
-      .eq("id", "2941bb4a-cdf4-4677-8e0b-d1def860728d")
+      .eq("id", CHATBOT_ID)
       .single();
 
     if (data) {
@@ -254,7 +256,7 @@ export const ChatInterface = () => {
       const { error: messageError } = await supabase
         .from("chat_messages")
         .insert({
-          chatbot_id: "2941bb4a-cdf4-4677-8e0b-d1def860728d",
+          chatbot_id: CHATBOT_ID,
           lead_id: currentLead.id,
           message: inputValue,
           is_bot: false
@@ -267,8 +269,9 @@ export const ChatInterface = () => {
       // Get chatbot response
       const response = await sendMessage(
         inputValue,
-        "2941bb4a-cdf4-4677-8e0b-d1def860728d",
-        currentLead.id
+        CHATBOT_ID,
+        currentLead.id,
+        AGENCY_ID
       );
 
       const agentResponse: Message = {
@@ -286,7 +289,7 @@ export const ChatInterface = () => {
       const { error: botMessageError } = await supabase
         .from("chat_messages")
         .insert({
-          chatbot_id: "2941bb4a-cdf4-4677-8e0b-d1def860728d",
+          chatbot_id: CHATBOT_ID,
           lead_id: currentLead.id,
           message: response.response,
           is_bot: true,
@@ -333,8 +336,9 @@ export const ChatInterface = () => {
       try {
         const response = await sendMessage(
           transcription,
-          "2941bb4a-cdf4-4677-8e0b-d1def860728d",
-          currentLead?.id
+          CHATBOT_ID,
+          currentLead?.id,
+          AGENCY_ID
         );
 
         const agentResponse: Message = {
