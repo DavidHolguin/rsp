@@ -140,24 +140,24 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         className={cn(
-          "p-2 rounded-full transition-all duration-200 flex items-center justify-center",
-          isRecording ? "bg-red-500 animate-pulse" : "bg-primary hover:bg-primary/90",
+          "w-12 h-12 rounded-full transition-all duration-200 flex items-center justify-center",
+          isRecording ? "bg-red-500" : "bg-[#00A884] hover:bg-[#00A884]/90",
           isDragging && "bg-red-600"
         )}
       >
         {isDragging ? (
-          <X className="w-5 h-5 text-white" />
+          <X className="w-6 h-6 text-white" />
         ) : (
-          <Mic className="w-5 h-5 text-white" />
+          <Mic className="w-6 h-6 text-white" />
         )}
       </button>
       
       {isRecording && (
         <>
-          <div className="absolute -top-16 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-3 py-2 rounded-full flex items-center gap-2 animate-fade-in">
-            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+          <div className="absolute -top-20 left-1/2 -translate-x-1/2 bg-[#1F2C34] text-white text-sm px-4 py-3 rounded-lg flex items-center gap-3 shadow-lg animate-fade-in min-w-[200px]">
+            <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
             {formatTime(recordingTime)}
-            <ChevronUp className="w-4 h-4" />
+            <ChevronUp className="w-4 h-4 ml-auto" />
           </div>
           <div className="fixed inset-0 bg-black/20 animate-fade-in -z-10" />
         </>

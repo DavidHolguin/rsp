@@ -35,22 +35,23 @@ export const MessageInput = ({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 p-4 border-t dark:border-gray-700 bg-[#1F2C34] dark:bg-[#1F2C34]">
-      <div className="flex items-center space-x-2">
+    <div className="fixed bottom-0 left-0 right-0 p-3 border-t dark:border-gray-700/50 bg-[#1F2C34] dark:bg-[#1F2C34]">
+      <div className="flex items-center gap-2 mx-auto max-w-4xl">
         <Popover>
           <PopoverTrigger asChild>
             <Button 
               variant="ghost" 
               size="icon"
-              className="text-gray-300 hover:text-gray-100"
+              className="text-gray-400 hover:text-gray-300 hover:bg-[#2A3942]"
             >
-              <Smile className="h-5 w-5" />
+              <Smile className="h-6 w-6" />
             </Button>
           </PopoverTrigger>
           <PopoverContent 
-            className="w-full p-0" 
+            className="w-full p-0 border-none shadow-lg" 
             side="top" 
             align="start"
+            sideOffset={16}
           >
             <EmojiPicker
               onEmojiClick={handleEmojiClick}
@@ -60,19 +61,21 @@ export const MessageInput = ({
           </PopoverContent>
         </Popover>
         
-        <Input
-          ref={inputRef}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onKeyPress={onKeyPress}
-          placeholder="Escribe un mensaje..."
-          className="flex-1 dark:bg-[#2A3942] dark:text-white dark:border-gray-700 rounded-full"
-        />
+        <div className="flex-1 relative">
+          <Input
+            ref={inputRef}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyPress={onKeyPress}
+            placeholder="Mensaje"
+            className="w-full dark:bg-[#2A3942] dark:text-white border-none rounded-2xl pl-4 pr-12 py-6 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+        </div>
         
         {value.trim() ? (
           <Button 
             onClick={onSend} 
-            className="bg-[#00A884] hover:bg-[#00A884]/90 rounded-full"
+            className="bg-[#00A884] hover:bg-[#00A884]/90 rounded-full w-12 h-12 flex items-center justify-center"
             size="icon"
           >
             <Send className="w-5 h-5" />
