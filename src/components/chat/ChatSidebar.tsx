@@ -84,8 +84,8 @@ export const ChatSidebar = ({ open, onClose }: ChatSidebarProps) => {
         <div className="flex flex-col h-full bg-background">
           <div className="p-4 border-b flex items-center justify-between bg-white dark:bg-gray-900 h-[72px]">
             <Button
-              variant="ghost"
-              className="w-full justify-start gap-2 font-semibold"
+              variant="default"
+              className="w-full justify-start gap-2 font-semibold bg-primary hover:bg-primary/90 text-primary-foreground"
               onClick={() => {
                 onClose();
               }}
@@ -97,7 +97,7 @@ export const ChatSidebar = ({ open, onClose }: ChatSidebarProps) => {
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="ml-2"
+              className="ml-2 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               <X className="h-5 w-5" />
             </Button>
