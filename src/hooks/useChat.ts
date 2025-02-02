@@ -1,9 +1,11 @@
 import { useState, useCallback } from "react";
 import { Message } from "@/types/chat";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 export const useChat = (chatbotId: string, currentLead: { id: string; name: string } | null) => {
   const [messages, setMessages] = useState<Message[]>([]);
+  const { toast } = useToast();
 
   const showGreeting = useCallback((name: string) => {
     const greetingMessage: Message = {
@@ -17,7 +19,10 @@ export const useChat = (chatbotId: string, currentLead: { id: string; name: stri
   }, []);
 
   const handleSend = useCallback(async (content: string, silent: boolean = false) => {
-    if (!content.trim() || !currentLead) return;
+    if (!content.trim() || !currentLead || !chatbotId) {
+      console.error("Missing required parameters:", { content, currentLead, chatbotId });
+      return;
+    }
 
     if (!silent) {
       const userMessage: Message = {
@@ -31,9 +36,23 @@ export const useChat = (chatbotId: string, currentLead: { id: string; name: stri
     }
 
     try {
-      const { data: response } = await supabase.functions.invoke('chat', {
-        body: { message: content, chatbotId, leadId: currentLead.id }
+      const { data: response, error } = await supabase.functions.invoke('chat', {
+        body: { 
+          message: content, 
+          chatbotId, 
+          leadId: currentLead.id 
+        }
       });
+
+      if (error) {
+        console.error("Error calling chat function:", error);
+        toast({
+          title: "Error",
+          description: "No se pudo enviar el mensaje. Por favor intenta nuevamente.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       if (response?.message) {
         const botMessage: Message = {
@@ -48,8 +67,13 @@ export const useChat = (chatbotId: string, currentLead: { id: string; name: stri
       }
     } catch (error) {
       console.error("Error sending message:", error);
+      toast({
+        title: "Error",
+        description: "Hubo un problema al procesar tu mensaje. Por favor intenta nuevamente.",
+        variant: "destructive",
+      });
     }
-  }, [chatbotId, currentLead]);
+  }, [chatbotId, currentLead, toast]);
 
   return {
     messages,
