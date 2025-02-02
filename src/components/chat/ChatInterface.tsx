@@ -152,8 +152,9 @@ export const ChatInterface = () => {
       hasTranscription: !!transcription
     });
 
+    // Send transcription to chatbot without creating a new message
     if (transcription && currentLead) {
-      handleSend(transcription);
+      handleSend(transcription, true);
     }
   };
 
