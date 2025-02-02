@@ -23,14 +23,14 @@ interface LeadTrackingData {
 }
 
 export const useLeadTracking = (leadId: string | null) => {
+  const { toast } = useToast();
   const sessionRef = useRef<string | null>(null);
   const startTimeRef = useRef<Date>(new Date());
   const lastActivityRef = useRef<Date>(new Date());
   const isFirstVisitRef = useRef<boolean>(true);
   const retryAttemptsRef = useRef<number>(0);
-  const { toast } = useToast();
   const MAX_RETRY_ATTEMPTS = 3;
-  const RETRY_DELAY = 1000; // 1 second
+  const RETRY_DELAY = 1000;
 
   const getDeviceInfo = () => {
     const parser = new UAParser();
@@ -78,9 +78,7 @@ export const useLeadTracking = (leadId: string | null) => {
         .eq('id', leadId)
         .maybeSingle();
 
-      if (leadError) {
-        throw leadError;
-      }
+      if (leadError) throw leadError;
 
       const isFirstVisit = existingLead?.created_at === existingLead?.last_interaction;
       isFirstVisitRef.current = isFirstVisit;
@@ -110,9 +108,7 @@ export const useLeadTracking = (leadId: string | null) => {
         .select('id')
         .single();
 
-      if (sessionError) {
-        throw sessionError;
-      }
+      if (sessionError) throw sessionError;
 
       sessionRef.current = session.id;
       retryAttemptsRef.current = 0;
