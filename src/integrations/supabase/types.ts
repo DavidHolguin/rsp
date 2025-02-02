@@ -1259,33 +1259,48 @@ export type Database = {
       lead_tracking: {
         Row: {
           created_at: string | null
+          device_info: Json | null
           id: string
           interactions: Json | null
+          ip_address: string | null
           landing_page_id: string | null
           lead_id: string | null
+          location_info: Json | null
           page_views: Json | null
           session_end: string | null
           session_start: string | null
+          user_agent: string | null
+          user_preferences: Json | null
         }
         Insert: {
           created_at?: string | null
+          device_info?: Json | null
           id?: string
           interactions?: Json | null
+          ip_address?: string | null
           landing_page_id?: string | null
           lead_id?: string | null
+          location_info?: Json | null
           page_views?: Json | null
           session_end?: string | null
           session_start?: string | null
+          user_agent?: string | null
+          user_preferences?: Json | null
         }
         Update: {
           created_at?: string | null
+          device_info?: Json | null
           id?: string
           interactions?: Json | null
+          ip_address?: string | null
           landing_page_id?: string | null
           lead_id?: string | null
+          location_info?: Json | null
           page_views?: Json | null
           session_end?: string | null
           session_start?: string | null
+          user_agent?: string | null
+          user_preferences?: Json | null
         }
         Relationships: [
           {
@@ -1951,6 +1966,18 @@ export type Database = {
         }
         Returns: number
       }
+      calculate_session_metrics: {
+        Args: {
+          p_lead_id: string
+        }
+        Returns: {
+          total_sessions: number
+          avg_session_duration: unknown
+          total_page_views: number
+          bounce_rate: number
+          most_viewed_pages: Json
+        }[]
+      }
       calculate_total_time_spent: {
         Args: {
           p_lead_id: string
@@ -2210,6 +2237,12 @@ export type Database = {
           relevance_score: number
           metadata: Json
         }[]
+      }
+      update_lead_engagement_score: {
+        Args: {
+          p_lead_id: string
+        }
+        Returns: number
       }
     }
     Enums: {

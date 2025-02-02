@@ -37,13 +37,18 @@ export const useLeadTracking = (leadId: string | null) => {
             referrer: document.referrer
           }],
           interactions: [],
-          metadata: {
+          device_info: {
             ...getDeviceInfo(),
             userAgent: navigator.userAgent,
             language: navigator.language,
             screenResolution: `${window.screen.width}x${window.screen.height}`,
             windowSize: `${window.innerWidth}x${window.innerHeight}`,
             timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+          },
+          user_preferences: {
+            language: navigator.language,
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            colorScheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
           }
         })
         .select('id')
