@@ -47,11 +47,16 @@ export const useLeadTracking = (leadId: string | null) => {
 
     try {
       // Check if this is actually the first visit
-      const { data: existingLead } = await supabase
+      const { data: existingLead, error: leadError } = await supabase
         .from('leads')
         .select('total_visits, created_at, last_interaction')
         .eq('id', leadId)
-        .single();
+        .maybeSingle();
+
+      if (leadError) {
+        console.error('Error fetching lead:', leadError);
+        return;
+      }
 
       const isFirstVisit = existingLead?.created_at === existingLead?.last_interaction;
       isFirstVisitRef.current = isFirstVisit;
@@ -76,13 +81,17 @@ export const useLeadTracking = (leadId: string | null) => {
         }
       };
 
-      const { data: session, error } = await supabase
+      const { data: session, error: sessionError } = await supabase
         .from('lead_tracking')
         .insert(trackingData)
         .select('id')
         .single();
 
-      if (error) throw error;
+      if (sessionError) {
+        console.error('Error creating session:', sessionError);
+        return;
+      }
+
       sessionRef.current = session.id;
 
       // Only increment total_visits if it's a new session
@@ -215,24 +224,32 @@ export const useLeadTracking = (leadId: string | null) => {
         .from('lead_tracking')
         .update({
           session_end: new Date().toISOString(),
-          session_duration: sessionDuration
+          session_duration: Math.floor(sessionDuration / 1000) // Convert to seconds
         })
         .eq('id', sessionRef.current);
 
       // Update total time in leads
-      const { data: currentLead } = await supabase
+      const { data: currentLead, error: leadError } = await supabase
         .from('leads')
         .select('total_time_spent')
         .eq('id', leadId)
-        .single();
+        .maybeSingle();
 
-      const currentTimeSpent = currentLead?.total_time_spent || '0 seconds';
-      const newTimeSpent = `${parseInt(currentTimeSpent.toString()) + Math.floor(sessionDuration / 1000)} seconds`;
+      if (leadError) {
+        console.error('Error fetching lead time:', leadError);
+        return;
+      }
+
+      const currentTimeInSeconds = currentLead?.total_time_spent 
+        ? parseInt(currentLead.total_time_spent.toString().split(' ')[0]) 
+        : 0;
+      
+      const newTimeInSeconds = currentTimeInSeconds + Math.floor(sessionDuration / 1000);
 
       await supabase
         .from('leads')
         .update({ 
-          total_time_spent: newTimeSpent
+          total_time_spent: `${newTimeInSeconds} seconds`
         })
         .eq('id', leadId);
 
