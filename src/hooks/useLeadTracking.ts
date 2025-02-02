@@ -62,14 +62,19 @@ export const useLeadTracking = (leadId: string | null) => {
       console.log(`Retrying ${operation} attempt ${retryAttemptsRef.current} in ${delay}ms`);
       await new Promise(resolve => setTimeout(resolve, delay));
       
-      return retryFn();
-    } else {
-      toast({
-        title: "Error",
-        description: `Failed to ${operation}. Please try again later.`,
-        variant: "destructive",
-      });
-      retryAttemptsRef.current = 0;
+      try {
+        await retryFn();
+        retryAttemptsRef.current = 0; // Reset on success
+      } catch (retryError) {
+        if (retryAttemptsRef.current >= MAX_RETRY_ATTEMPTS) {
+          toast({
+            title: "Error",
+            description: `Failed to ${operation}. Please try again later.`,
+            variant: "destructive",
+          });
+          retryAttemptsRef.current = 0;
+        }
+      }
     }
   };
 
@@ -83,9 +88,7 @@ export const useLeadTracking = (leadId: string | null) => {
         .eq('id', leadId)
         .maybeSingle();
 
-      if (leadError) {
-        throw leadError;
-      }
+      if (leadError) throw leadError;
 
       const isFirstVisit = existingLead?.created_at === existingLead?.last_interaction;
       isFirstVisitRef.current = isFirstVisit;
@@ -115,12 +118,9 @@ export const useLeadTracking = (leadId: string | null) => {
         .select('id')
         .single();
 
-      if (sessionError) {
-        throw sessionError;
-      }
+      if (sessionError) throw sessionError;
 
       sessionRef.current = session.id;
-      retryAttemptsRef.current = 0;
 
       if (isFirstVisit || !existingLead?.total_visits) {
         await supabase
@@ -168,7 +168,7 @@ export const useLeadTracking = (leadId: string | null) => {
 
         if (error) throw error;
       } catch (error) {
-        console.error('Error updating activity:', error);
+        await handleError('update activity', error, updateActivity);
       }
     }
   };
@@ -244,7 +244,6 @@ export const useLeadTracking = (leadId: string | null) => {
 
       if (leadError) throw leadError;
       
-      // Reset retry attempts on success
       retryAttemptsRef.current = 0;
       
     } catch (error) {
@@ -291,7 +290,6 @@ export const useLeadTracking = (leadId: string | null) => {
 
       if (updateError) throw updateError;
 
-      // Reset retry attempts on success
       retryAttemptsRef.current = 0;
 
     } catch (error) {
