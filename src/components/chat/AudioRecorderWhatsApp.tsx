@@ -57,7 +57,7 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
-      setRecordingTime(0); // Reset recording time when starting new recording
+      setRecordingTime(0);
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -90,7 +90,7 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         setIsRecording(false);
         clearInterval(timerRef.current);
-        setRecordingTime(0); // Reset recording time after stopping
+        setRecordingTime(0);
         await processAndSendAudio(audioBlob);
         resolve();
       };
@@ -113,7 +113,6 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
 
         if (error) throw error;
         
-        // Only pass the transcription, don't show it as a separate message
         onAudioRecorded(audioBlob, data.text);
       };
       
