@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { X, MessageSquarePlus, FileText, Shield, MoreVertical } from "lucide-react";
-import { useTheme } from "next-themes";
+import { X, FileText, Shield, MoreVertical, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,12 +19,6 @@ interface Agency {
   contact_email: string;
 }
 
-interface Conversation {
-  id: string;
-  title: string;
-  created_at: string;
-}
-
 interface ChatSidebarProps {
   open: boolean;
   onClose: () => void;
@@ -32,7 +27,8 @@ interface ChatSidebarProps {
 
 export const ChatSidebar = ({ open, onClose, currentLeadId }: ChatSidebarProps) => {
   const [agency, setAgency] = useState<Agency | null>(null);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [currentLead, setCurrentLead] = useState<{name: string; phone: string} | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAgencyData = async () => {
@@ -47,51 +43,69 @@ export const ChatSidebar = ({ open, onClose, currentLeadId }: ChatSidebarProps) 
       }
     };
 
-    const fetchConversations = async () => {
+    const fetchLeadData = async () => {
       if (!currentLeadId) return;
 
       const { data } = await supabase
-        .from("chat_conversations")
-        .select("id, title, created_at")
-        .eq("chatbot_id", "2941bb4a-cdf4-4677-8e0b-d1def860728d")
-        .eq("lead_id", currentLeadId)
-        .order("created_at", { ascending: false });
+        .from("leads")
+        .select("name, phone")
+        .eq("id", currentLeadId)
+        .single();
 
       if (data) {
-        setConversations(data);
+        setCurrentLead(data);
       }
     };
 
     fetchAgencyData();
     if (open) {
-      fetchConversations();
+      fetchLeadData();
     }
   }, [open, currentLeadId]);
 
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      ?.split(" ")
       .map((n) => n[0])
       .join("")
       .toUpperCase()
-      .slice(0, 2);
+      .slice(0, 2) || "U";
   };
+
+  const menuItems = [
+    {
+      title: "Términos y Condiciones",
+      icon: FileText,
+      path: "/terms-and-conditions"
+    },
+    {
+      title: "Políticas de Uso",
+      icon: Shield,
+      path: "/usage-policies"
+    },
+    {
+      title: "Políticas de Cancelación",
+      icon: FileText,
+      path: "/cancellation-policies"
+    }
+  ];
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent side="left" className="w-[300px] sm:w-[400px] p-0">
         <div className="flex flex-col h-full bg-background">
-          <div className="p-4 border-b flex items-center justify-between bg-white dark:bg-gray-900 h-[72px]">
-            <Button
-              variant="default"
-              className="w-full justify-start gap-2 font-semibold bg-primary hover:bg-primary/90 text-primary-foreground"
-              onClick={() => {
-                onClose();
-              }}
-            >
-              <MessageSquarePlus className="h-5 w-5" />
-              <span>Nueva Conversación</span>
-            </Button>
+          <div className="p-4 border-b flex items-center justify-between bg-white dark:bg-gray-900">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10">
+                <AvatarFallback className="bg-primary text-primary-foreground">
+                  {currentLead ? getInitials(currentLead.name) : <User className="h-6 w-6" />}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col">
+                <span className="font-medium">{currentLead?.name || "Usuario"}</span>
+                <span className="text-sm text-muted-foreground">{currentLead?.phone || "Sin teléfono"}</span>
+              </div>
+            </div>
             <Button
               variant="ghost"
               size="icon"
@@ -102,20 +116,20 @@ export const ChatSidebar = ({ open, onClose, currentLeadId }: ChatSidebarProps) 
             </Button>
           </div>
 
-          <ScrollArea className="flex-1 px-4">
-            <div className="space-y-2 py-4">
-              {conversations.map((conversation) => (
+          <ScrollArea className="flex-1">
+            <div className="p-4 space-y-2">
+              {menuItems.map((item) => (
                 <Button
-                  key={conversation.id}
+                  key={item.title}
                   variant="ghost"
-                  className="w-full justify-start text-left"
+                  className="w-full justify-start gap-2"
+                  onClick={() => {
+                    navigate(item.path);
+                    onClose();
+                  }}
                 >
-                  <span className="truncate">
-                    {conversation.title || "Conversación sin título"}
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-auto">
-                    {new Date(conversation.created_at).toLocaleDateString()}
-                  </span>
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.title}</span>
                 </Button>
               ))}
             </div>
@@ -150,11 +164,11 @@ export const ChatSidebar = ({ open, onClose, currentLeadId }: ChatSidebarProps) 
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/terms-and-conditions")}>
                       <FileText className="mr-2 h-4 w-4" />
                       Términos y Condiciones
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/usage-policies")}>
                       <Shield className="mr-2 h-4 w-4" />
                       Políticas de Uso
                     </DropdownMenuItem>
