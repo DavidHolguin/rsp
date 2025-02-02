@@ -23,11 +23,12 @@ export const ChatInterface = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  // Initialize hooks outside of any conditions
   const { chatbot } = useChatbot(CHATBOT_ID);
   const { messages, showGreeting, handleSend, setMessages } = useChat(CHATBOT_ID, currentLead);
   const { trackInteraction } = useLeadTracking(currentLead?.id);
 
-  // Always initialize these values
+  // Always initialize storedLead
   const storedLead = localStorage.getItem('currentLead');
   const parsedLead = storedLead ? JSON.parse(storedLead) : null;
 
@@ -84,7 +85,6 @@ export const ChatInterface = () => {
       setShowOnboarding(false);
       showGreeting(name);
 
-      // Track onboarding completion
       trackInteraction('onboarding_complete', { name });
 
       const { error: convError } = await supabase
