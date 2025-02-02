@@ -219,7 +219,7 @@ export const useLeadTracking = (leadId: string | null) => {
         })
         .eq('id', sessionRef.current);
 
-      // Actualizar el tiempo total en leads
+      // Update total time in leads
       const { data: currentLead } = await supabase
         .from('leads')
         .select('total_time_spent')
