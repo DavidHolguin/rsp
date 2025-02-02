@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { Mic, X, ChevronUp } from "lucide-react";
+import { Mic, X, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
 
 interface AudioRecorderProps {
   onAudioRecorded: (audioBlob: Blob, transcription?: string) => void;
@@ -13,14 +14,45 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
   const [isDragging, setIsDragging] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const startYRef = useRef<number>(0);
+  const startXRef = useRef<number>(0);
   const timerRef = useRef<number>();
+
+  const requestPermission = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setHasPermission(true);
+      stream.getTracks().forEach(track => track.stop());
+    } catch (error) {
+      setHasPermission(false);
+      toast({
+        title: "Error de permisos",
+        description: "Necesitamos acceso al micrófono para grabar audio",
+        variant: "destructive",
+      });
+    }
+  };
 
   const startRecording = async () => {
     try {
+      if (hasPermission === null) {
+        await requestPermission();
+        return;
+      }
+
+      if (!hasPermission) {
+        toast({
+          title: "Sin acceso al micrófono",
+          description: "Por favor, habilita el acceso al micrófono en la configuración de tu navegador",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
@@ -40,6 +72,11 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
       }, 1000);
     } catch (error) {
       console.error("Error accessing microphone:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo acceder al micrófono",
+        variant: "destructive",
+      });
     }
   };
 
@@ -81,6 +118,11 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
       reader.readAsDataURL(audioBlob);
     } catch (error) {
       console.error("Error processing audio:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo procesar el audio",
+        variant: "destructive",
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -88,19 +130,24 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startYRef.current = e.touches[0].clientY;
+    startXRef.current = e.touches[0].clientX;
     startRecording();
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isRecording) return;
-    const currentY = e.touches[0].clientY;
-    const diff = startYRef.current - currentY;
-    setIsDragging(diff > 50);
+    const currentX = e.touches[0].clientX;
+    const diffX = startXRef.current - currentX;
+    setIsDragging(diffX > 50);
   };
 
   const handleTouchEnd = async () => {
     if (!isRecording) return;
     if (isDragging) {
+      mediaRecorderRef.current?.stream.getTracks().forEach(track => track.stop());
+      setIsRecording(false);
+      clearInterval(timerRef.current);
+      setRecordingTime(0);
       onCancel();
     } else {
       await stopRecording();
@@ -127,6 +174,9 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      }
     };
   }, []);
 
@@ -140,27 +190,33 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         className={cn(
-          "w-12 h-12 rounded-full transition-all duration-200 flex items-center justify-center",
-          isRecording ? "bg-red-500" : "bg-[#00A884] hover:bg-[#00A884]/90",
+          "transition-all duration-200 flex items-center justify-center",
+          isRecording 
+            ? "w-[200px] h-12 bg-white rounded-full" 
+            : "w-12 h-12 rounded-full bg-[#00A884] hover:bg-[#00A884]/90",
           isDragging && "bg-red-600"
         )}
       >
-        {isDragging ? (
-          <X className="w-6 h-6 text-white" />
+        {isRecording ? (
+          <div className="flex items-center gap-2 px-3 w-full">
+            <ChevronLeft className={cn(
+              "w-5 h-5 transition-opacity",
+              isDragging ? "opacity-0" : "opacity-100"
+            )} />
+            <span className="text-sm text-gray-600 flex-1 text-left">
+              {isDragging ? "Soltar para cancelar" : "Desliza para cancelar"}
+            </span>
+            <span className="text-sm text-gray-600 min-w-[40px] text-right">
+              {formatTime(recordingTime)}
+            </span>
+          </div>
         ) : (
           <Mic className="w-6 h-6 text-white" />
         )}
       </button>
       
       {isRecording && (
-        <>
-          <div className="absolute -top-20 left-1/2 -translate-x-1/2 bg-[#1F2C34] text-white text-sm px-4 py-3 rounded-lg flex items-center gap-3 shadow-lg animate-fade-in min-w-[200px]">
-            <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
-            {formatTime(recordingTime)}
-            <ChevronUp className="w-4 h-4 ml-auto" />
-          </div>
-          <div className="fixed inset-0 bg-black/20 animate-fade-in -z-10" />
-        </>
+        <div className="fixed inset-0 bg-black/20 animate-fade-in -z-10" />
       )}
     </div>
   );
