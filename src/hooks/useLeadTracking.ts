@@ -48,7 +48,12 @@ export const useLeadTracking = (leadId: string | null) => {
   };
 
   const handleError = async (operation: string, error: any, retryFn: () => Promise<void>) => {
-    console.error(`Error in ${operation}:`, error);
+    console.error(`Error in ${operation}:`, {
+      message: error.message,
+      details: error.stack,
+      hint: error.hint || "",
+      code: error.code || ""
+    });
     
     if (retryAttemptsRef.current < MAX_RETRY_ATTEMPTS) {
       retryAttemptsRef.current++;
@@ -238,6 +243,10 @@ export const useLeadTracking = (leadId: string | null) => {
         .eq('id', leadId);
 
       if (leadError) throw leadError;
+      
+      // Reset retry attempts on success
+      retryAttemptsRef.current = 0;
+      
     } catch (error) {
       await handleError('track interaction', error, () => trackInteraction(type, metadata));
     }
@@ -281,6 +290,9 @@ export const useLeadTracking = (leadId: string | null) => {
         .eq('id', leadId);
 
       if (updateError) throw updateError;
+
+      // Reset retry attempts on success
+      retryAttemptsRef.current = 0;
 
     } catch (error) {
       await handleError('end tracking', error, endTracking);
