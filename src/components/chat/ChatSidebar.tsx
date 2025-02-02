@@ -94,7 +94,7 @@ export const ChatSidebar = ({ open, onClose, currentLeadId }: ChatSidebarProps) 
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent side="left" className="w-[300px] sm:w-[400px] p-0">
         <div className="flex flex-col h-full bg-[#1F2C34] dark:bg-[#1F2C34]">
-          <div className="p-4 border-b border-gray-700/50 bg-[#1F2C34] dark:bg-[#1F2C34]">
+          <div className="p-4 border-b border-[#2A3942] bg-[#1F2C34] dark:bg-[#1F2C34]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
@@ -138,7 +138,7 @@ export const ChatSidebar = ({ open, onClose, currentLeadId }: ChatSidebarProps) 
           </ScrollArea>
 
           {agency && (
-            <div className="p-4 mt-auto border-t border-gray-700/50 bg-[#1F2C34] dark:bg-[#1F2C34]">
+            <div className="p-4 mt-auto border-t border-[#2A3942] bg-[#1F2C34] dark:bg-[#1F2C34]">
               <div className="flex items-center gap-3">
                 {agency.logo_url ? (
                   <img
@@ -165,7 +165,7 @@ export const ChatSidebar = ({ open, onClose, currentLeadId }: ChatSidebarProps) 
                       <MoreVertical className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-[#2A3942] border-gray-700">
+                  <DropdownMenuContent align="end" className="bg-[#2A3942] border-[#2A3942]">
                     <DropdownMenuItem onClick={() => navigate("/terms-and-conditions")} className="text-gray-300 hover:text-white focus:text-white focus:bg-[#374248]">
                       <FileText className="mr-2 h-4 w-4" />
                       Términos y Condiciones

@@ -9,7 +9,7 @@ interface ChatHeaderProps {
 
 export const ChatHeader = ({ chatbot, onOpenSidebar }: ChatHeaderProps) => {
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 flex items-center p-3 bg-[#1F2C34] dark:bg-[#1F2C34] border-b dark:border-gray-700">
+    <div className="fixed top-0 left-0 right-0 z-50 flex items-center p-3 bg-[#1F2C34] dark:bg-[#1F2C34] border-b border-[#2A3942] dark:border-[#2A3942]">
       <div className="flex items-center gap-3 flex-1">
         <div className="relative">
           {chatbot?.icon_url ? (
