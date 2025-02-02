@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { UAParser } from 'ua-parser-js';
+import { Json } from '@/integrations/supabase/types';
 
 interface LeadTrackingData {
   id?: string;
@@ -8,14 +9,16 @@ interface LeadTrackingData {
   landing_page_id?: string;
   session_start?: string;
   session_end?: string;
-  page_views?: any;
-  interactions?: any;
+  page_views?: Json;
+  interactions?: Json;
   created_at?: string;
-  device_info?: any;
-  user_preferences?: any;
+  device_info?: Json;
+  user_preferences?: Json;
   ip_address?: string;
   user_agent?: string;
-  location_info?: any;
+  location_info?: Json;
+  session_duration?: number;
+  last_activity?: string;
 }
 
 export const useLeadTracking = (leadId: string | null) => {
@@ -224,7 +227,7 @@ export const useLeadTracking = (leadId: string | null) => {
         .single();
 
       const currentTimeSpent = currentLead?.total_time_spent || '0 seconds';
-      const newTimeSpent = `${parseInt(currentTimeSpent) + Math.floor(sessionDuration / 1000)} seconds`;
+      const newTimeSpent = `${parseInt(currentTimeSpent.toString()) + Math.floor(sessionDuration / 1000)} seconds`;
 
       await supabase
         .from('leads')

@@ -1264,9 +1264,11 @@ export type Database = {
           interactions: Json | null
           ip_address: string | null
           landing_page_id: string | null
+          last_activity: string | null
           lead_id: string | null
           location_info: Json | null
           page_views: Json | null
+          session_duration: number | null
           session_end: string | null
           session_start: string | null
           user_agent: string | null
@@ -1279,9 +1281,11 @@ export type Database = {
           interactions?: Json | null
           ip_address?: string | null
           landing_page_id?: string | null
+          last_activity?: string | null
           lead_id?: string | null
           location_info?: Json | null
           page_views?: Json | null
+          session_duration?: number | null
           session_end?: string | null
           session_start?: string | null
           user_agent?: string | null
@@ -1294,9 +1298,11 @@ export type Database = {
           interactions?: Json | null
           ip_address?: string | null
           landing_page_id?: string | null
+          last_activity?: string | null
           lead_id?: string | null
           location_info?: Json | null
           page_views?: Json | null
+          session_duration?: number | null
           session_end?: string | null
           session_start?: string | null
           user_agent?: string | null
