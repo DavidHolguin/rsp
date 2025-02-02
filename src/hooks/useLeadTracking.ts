@@ -5,6 +5,8 @@ import { UAParser } from 'ua-parser-js';
 export const useLeadTracking = (leadId: string | null) => {
   const sessionRef = useRef<string | null>(null);
   const startTimeRef = useRef<Date>(new Date());
+  const lastActivityRef = useRef<Date>(new Date());
+  const isFirstVisitRef = useRef<boolean>(true);
 
   const getDeviceInfo = () => {
     const parser = new UAParser();
@@ -25,6 +27,16 @@ export const useLeadTracking = (leadId: string | null) => {
     if (!leadId) return;
 
     try {
+      // Check if this is actually the first visit
+      const { data: existingLead } = await supabase
+        .from('leads')
+        .select('total_visits, created_at')
+        .eq('id', leadId)
+        .single();
+
+      const isFirstVisit = existingLead?.created_at === existingLead?.last_interaction;
+      isFirstVisitRef.current = isFirstVisit;
+
       // Create new session
       const { data: session, error } = await supabase
         .from('lead_tracking')
@@ -44,11 +56,6 @@ export const useLeadTracking = (leadId: string | null) => {
             screenResolution: `${window.screen.width}x${window.screen.height}`,
             windowSize: `${window.innerWidth}x${window.innerHeight}`,
             timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-          },
-          user_preferences: {
-            language: navigator.language,
-            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            colorScheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
           }
         })
         .select('id')
@@ -57,22 +64,56 @@ export const useLeadTracking = (leadId: string | null) => {
       if (error) throw error;
       sessionRef.current = session.id;
 
-      // Incrementar total_visits directamente
-      const { data: currentLead } = await supabase
-        .from('leads')
-        .select('total_visits')
-        .eq('id', leadId)
-        .single();
-
-      await supabase
-        .from('leads')
-        .update({ 
-          total_visits: (currentLead?.total_visits || 0) + 1 
-        })
-        .eq('id', leadId);
+      // Solo incrementar total_visits si es una nueva sesión genuina
+      if (isFirstVisit || !existingLead?.total_visits) {
+        await supabase
+          .from('leads')
+          .update({ 
+            total_visits: 1,
+            last_interaction: new Date().toISOString()
+          })
+          .eq('id', leadId);
+      } else {
+        // Verificar si la última interacción fue hace más de 30 minutos
+        const lastInteraction = new Date(existingLead.last_interaction);
+        const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+        
+        if (lastInteraction < thirtyMinutesAgo) {
+          await supabase
+            .from('leads')
+            .update({ 
+              total_visits: (existingLead.total_visits || 0) + 1,
+              last_interaction: new Date().toISOString()
+            })
+            .eq('id', leadId);
+        }
+      }
 
     } catch (error) {
       console.error('Error starting tracking:', error);
+    }
+  };
+
+  const updateActivity = async () => {
+    if (!sessionRef.current || !leadId) return;
+
+    const now = new Date();
+    const timeSinceLastActivity = now.getTime() - lastActivityRef.current.getTime();
+    
+    // Solo actualizar si han pasado más de 5 segundos desde la última actividad
+    if (timeSinceLastActivity > 5000) {
+      lastActivityRef.current = now;
+      
+      try {
+        await supabase
+          .from('lead_tracking')
+          .update({
+            last_activity: now.toISOString()
+          })
+          .eq('id', sessionRef.current);
+      } catch (error) {
+        console.error('Error updating activity:', error);
+      }
     }
   };
 
@@ -96,19 +137,17 @@ export const useLeadTracking = (leadId: string | null) => {
         referrer: document.referrer
       });
 
-      const { error } = await supabase
+      await supabase
         .from('lead_tracking')
         .update({ page_views: updatedPageViews })
         .eq('id', sessionRef.current);
-
-      if (error) throw error;
     } catch (error) {
       console.error('Error tracking page view:', error);
     }
   };
 
   const trackInteraction = async (type: string, metadata: any = {}) => {
-    if (!sessionRef.current) return;
+    if (!sessionRef.current || !leadId) return;
 
     try {
       const { data: currentTracking } = await supabase
@@ -127,12 +166,19 @@ export const useLeadTracking = (leadId: string | null) => {
         metadata
       });
 
-      const { error } = await supabase
+      await supabase
         .from('lead_tracking')
         .update({ interactions: updatedInteractions })
         .eq('id', sessionRef.current);
 
-      if (error) throw error;
+      // Actualizar last_interaction en leads
+      await supabase
+        .from('leads')
+        .update({ 
+          last_interaction: new Date().toISOString()
+        })
+        .eq('id', leadId);
+
     } catch (error) {
       console.error('Error tracking interaction:', error);
     }
@@ -142,32 +188,30 @@ export const useLeadTracking = (leadId: string | null) => {
     if (!sessionRef.current || !leadId) return;
 
     try {
-      // Update session end time
-      const { error } = await supabase
+      const sessionDuration = new Date().getTime() - startTimeRef.current.getTime();
+      
+      await supabase
         .from('lead_tracking')
         .update({
-          session_end: new Date().toISOString()
+          session_end: new Date().toISOString(),
+          session_duration: sessionDuration
         })
         .eq('id', sessionRef.current);
 
-      if (error) throw error;
-
-      // Calculate session duration
-      const sessionDuration = new Date().getTime() - startTimeRef.current.getTime();
-      
-      // Convert milliseconds to interval string (PostgreSQL format)
-      const intervalStr = `${Math.floor(sessionDuration / 1000)} seconds`;
-      
+      // Actualizar el tiempo total en leads
       const { data: currentLead } = await supabase
         .from('leads')
         .select('total_time_spent')
         .eq('id', leadId)
         .single();
 
+      const currentTimeSpent = currentLead?.total_time_spent || '0 seconds';
+      const newTimeSpent = `${parseInt(currentTimeSpent) + Math.floor(sessionDuration / 1000)} seconds`;
+
       await supabase
         .from('leads')
         .update({ 
-          total_time_spent: currentLead?.total_time_spent || '0 seconds'
+          total_time_spent: newTimeSpent
         })
         .eq('id', leadId);
 
@@ -181,7 +225,18 @@ export const useLeadTracking = (leadId: string | null) => {
       startTracking();
     }
 
-    // Setup page visibility change handler
+    // Configurar detectores de actividad
+    const handleActivity = () => {
+      updateActivity();
+    };
+
+    // Eventos de actividad del usuario
+    document.addEventListener('mousemove', handleActivity);
+    document.addEventListener('keypress', handleActivity);
+    document.addEventListener('scroll', handleActivity);
+    document.addEventListener('click', handleActivity);
+
+    // Configurar detector de visibilidad
     const handleVisibilityChange = () => {
       if (document.hidden) {
         endTracking();
@@ -190,7 +245,7 @@ export const useLeadTracking = (leadId: string | null) => {
       }
     };
 
-    // Setup beforeunload handler
+    // Configurar detector de cierre de ventana
     const handleBeforeUnload = () => {
       endTracking();
     };
@@ -200,6 +255,10 @@ export const useLeadTracking = (leadId: string | null) => {
 
     // Cleanup
     return () => {
+      document.removeEventListener('mousemove', handleActivity);
+      document.removeEventListener('keypress', handleActivity);
+      document.removeEventListener('scroll', handleActivity);
+      document.removeEventListener('click', handleActivity);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       endTracking();
