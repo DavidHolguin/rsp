@@ -27,9 +27,10 @@ interface Conversation {
 interface ChatSidebarProps {
   open: boolean;
   onClose: () => void;
+  currentLeadId?: string;
 }
 
-export const ChatSidebar = ({ open, onClose }: ChatSidebarProps) => {
+export const ChatSidebar = ({ open, onClose, currentLeadId }: ChatSidebarProps) => {
   const [agency, setAgency] = useState<Agency | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
 
@@ -47,17 +48,13 @@ export const ChatSidebar = ({ open, onClose }: ChatSidebarProps) => {
     };
 
     const fetchConversations = async () => {
-      // Get current lead from localStorage
-      const storedLead = localStorage.getItem('currentLead');
-      if (!storedLead) return;
-
-      const currentLead = JSON.parse(storedLead);
+      if (!currentLeadId) return;
 
       const { data } = await supabase
         .from("chat_conversations")
         .select("id, title, created_at")
         .eq("chatbot_id", "2941bb4a-cdf4-4677-8e0b-d1def860728d")
-        .eq("lead_id", currentLead.id)
+        .eq("lead_id", currentLeadId)
         .order("created_at", { ascending: false });
 
       if (data) {
@@ -66,8 +63,10 @@ export const ChatSidebar = ({ open, onClose }: ChatSidebarProps) => {
     };
 
     fetchAgencyData();
-    fetchConversations();
-  }, []);
+    if (open) {
+      fetchConversations();
+    }
+  }, [open, currentLeadId]);
 
   const getInitials = (name: string) => {
     return name

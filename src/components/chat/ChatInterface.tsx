@@ -11,6 +11,7 @@ import { useChatbot } from "@/hooks/useChatbot";
 import { useChat } from "@/hooks/useChat";
 
 const CHATBOT_ID = "2941bb4a-cdf4-4677-8e0b-d1def860728d";
+const AGENCY_ID = "157597a6-8ba8-4d8e-8bd9-a8b325c8b05b";
 
 export const ChatInterface = () => {
   const [inputValue, setInputValue] = useState("");
@@ -32,28 +33,24 @@ export const ChatInterface = () => {
       const storedLead = localStorage.getItem('currentLead');
       if (storedLead) {
         const parsedLead = JSON.parse(storedLead);
-        setCurrentLead(parsedLead);
-        showGreeting(parsedLead.name);
-        return;
+        // Verify if the lead still exists in the database
+        const { data: existingLead } = await supabase
+          .from("leads")
+          .select("id, name, has_completed_onboarding")
+          .eq("id", parsedLead.id)
+          .single();
+
+        if (existingLead) {
+          setCurrentLead(parsedLead);
+          showGreeting(parsedLead.name);
+          return;
+        } else {
+          // If lead doesn't exist in DB, clear localStorage
+          localStorage.removeItem('currentLead');
+        }
       }
 
-      // If no stored lead, check database
-      const { data: existingLead } = await supabase
-        .from("leads")
-        .select("id, name, has_completed_onboarding")
-        .eq("active", true)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      if (!existingLead || !existingLead.has_completed_onboarding) {
-        setShowOnboarding(true);
-      } else {
-        const leadData = { id: existingLead.id, name: existingLead.name };
-        setCurrentLead(leadData);
-        localStorage.setItem('currentLead', JSON.stringify(leadData));
-        showGreeting(existingLead.name);
-      }
+      setShowOnboarding(true);
     };
 
     checkOnboardingStatus();
@@ -67,7 +64,7 @@ export const ChatInterface = () => {
           p_name: name,
           p_phone: phone,
           p_email: "",
-          p_agency_id: "157597a6-8ba8-4d8e-8bd9-a8b325c8b05b",
+          p_agency_id: AGENCY_ID,
           p_source: "chat"
         }
       );
@@ -176,7 +173,11 @@ export const ChatInterface = () => {
         inputRef={inputRef}
       />
 
-      <ChatSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <ChatSidebar 
+        open={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)} 
+        currentLeadId={currentLead?.id}
+      />
       
       {showOnboarding && (
         <OnboardingModal onSubmit={handleOnboarding} />
