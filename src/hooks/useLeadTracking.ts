@@ -28,6 +28,7 @@ export const useLeadTracking = (leadId: string | null) => {
   const lastActivityRef = useRef<Date>(new Date());
   const isFirstVisitRef = useRef<boolean>(true);
   const retryAttemptsRef = useRef<number>(0);
+  const cleanupAttemptedRef = useRef<boolean>(false);
   const { toast } = useToast();
   const MAX_RETRY_ATTEMPTS = 3;
   const RETRY_DELAY = 1000;
@@ -134,8 +135,38 @@ export const useLeadTracking = (leadId: string | null) => {
 
         if (error) throw error;
       } catch (error) {
-        console.error('Error updating activity:', error);
+        await handleError('update activity', error, updateActivity);
       }
+    }
+  };
+
+  const endTracking = async () => {
+    if (!sessionRef.current || !leadId || cleanupAttemptedRef.current) return;
+
+    cleanupAttemptedRef.current = true;
+    console.log('Attempting to end tracking session:', sessionRef.current);
+
+    try {
+      const { error } = await supabase
+        .from('lead_tracking')
+        .update({
+          session_end: new Date().toISOString(),
+          session_duration: Math.floor((new Date().getTime() - startTimeRef.current.getTime()) / 1000)
+        })
+        .eq('id', sessionRef.current);
+
+      if (error) throw error;
+
+      console.log('Session ended successfully');
+      sessionRef.current = null;
+    } catch (error) {
+      console.error('Error ending session:', {
+        message: error.message,
+        details: error.stack,
+        hint: error.hint || "",
+        code: error.code || ""
+      });
+      // Don't retry on cleanup to avoid hanging the page unload
     }
   };
 
@@ -168,7 +199,7 @@ export const useLeadTracking = (leadId: string | null) => {
 
       if (updateError) throw updateError;
     } catch (error) {
-      console.error('Error tracking page view:', error);
+      await handleError('track page view', error, () => trackPageView(path));
     }
   };
 
@@ -204,31 +235,7 @@ export const useLeadTracking = (leadId: string | null) => {
 
       if (updateError) throw updateError;
     } catch (error) {
-      console.error('Error tracking interaction:', error);
-    }
-  };
-
-  const endTracking = async () => {
-    if (!sessionRef.current || !leadId) return;
-
-    try {
-      const sessionDuration = Math.floor((new Date().getTime() - startTimeRef.current.getTime()) / 1000);
-      
-      const { error } = await supabase
-        .from('lead_tracking')
-        .update({
-          session_end: new Date().toISOString(),
-          session_duration: sessionDuration,
-          last_activity: new Date().toISOString()
-        })
-        .eq('id', sessionRef.current);
-
-      if (error) throw error;
-
-      console.log('Session ended successfully');
-      sessionRef.current = null;
-    } catch (error) {
-      console.error('Error ending session:', error);
+      await handleError('track interaction', error, () => trackInteraction(type, metadata));
     }
   };
 
@@ -241,10 +248,11 @@ export const useLeadTracking = (leadId: string | null) => {
       updateActivity();
     };
 
-    document.addEventListener('mousemove', handleActivity);
-    document.addEventListener('keypress', handleActivity);
-    document.addEventListener('scroll', handleActivity);
-    document.addEventListener('click', handleActivity);
+    // Add event listeners
+    const events = ['mousemove', 'keypress', 'scroll', 'click'];
+    events.forEach(event => {
+      document.addEventListener(event, handleActivity);
+    });
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -261,11 +269,11 @@ export const useLeadTracking = (leadId: string | null) => {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleBeforeUnload);
 
+    // Cleanup function
     return () => {
-      document.removeEventListener('mousemove', handleActivity);
-      document.removeEventListener('keypress', handleActivity);
-      document.removeEventListener('scroll', handleActivity);
-      document.removeEventListener('click', handleActivity);
+      events.forEach(event => {
+        document.removeEventListener(event, handleActivity);
+      });
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       endTracking();
