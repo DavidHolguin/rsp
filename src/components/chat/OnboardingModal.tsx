@@ -31,25 +31,60 @@ export const OnboardingModal = ({ onSubmit }: OnboardingModalProps) => {
 
     try {
       const fullPhone = `${countryCode}${phone}`;
+      const agency_id = "157597a6-8ba8-4d8e-8bd9-a8b325c8b05b";
       
-      // Create or update lead
-      const { data: leadData, error: leadError } = await supabase
+      // Create or update lead using the compound unique constraint
+      const { data: lead, error: leadError } = await supabase
         .from('leads')
         .upsert({
           phone: fullPhone,
           name: name,
-          agency_id: "157597a6-8ba8-4d8e-8bd9-a8b325c8b05b",
+          agency_id: agency_id,
           has_completed_onboarding: true,
           source: 'web'
         }, {
-          onConflict: 'phone',
-          ignoreDuplicates: false
+          onConflict: 'phone,agency_id'
         });
 
       if (leadError) {
         console.error('Error creating lead:', leadError);
         setError("Error al guardar la información");
         return;
+      }
+
+      // Get the lead ID (either from the new insert or existing record)
+      const { data: leadData } = await supabase
+        .from('leads')
+        .select('id')
+        .eq('phone', fullPhone)
+        .eq('agency_id', agency_id)
+        .single();
+
+      if (!leadData?.id) {
+        throw new Error('Could not retrieve lead ID');
+      }
+
+      await supabase
+        .from("leads")
+        .update({ 
+          has_completed_onboarding: true,
+          last_greeting_at: new Date().toISOString()
+        })
+        .eq("id", leadData.id);
+
+      const leadInfo = { id: leadData.id, name };
+      localStorage.setItem('currentLead', JSON.stringify(leadInfo));
+
+      const { error: convError } = await supabase
+        .from("chat_conversations")
+        .insert({
+          chatbot_id: "2941bb4a-cdf4-4677-8e0b-d1def860728d",
+          lead_id: leadData.id,
+          title: `Conversación con ${name}`
+        });
+
+      if (convError) {
+        console.error("Error creating conversation:", convError);
       }
 
       onSubmit(name, fullPhone);
