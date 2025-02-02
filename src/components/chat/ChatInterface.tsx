@@ -9,31 +9,29 @@ import { MessageInput } from "./MessageInput";
 import { MessageList } from "./MessageList";
 import { useChatbot } from "@/hooks/useChatbot";
 import { useChat } from "@/hooks/useChat";
+import { useLeadTracking } from "@/hooks/useLeadTracking";
 
 const CHATBOT_ID = "2941bb4a-cdf4-4677-8e0b-d1def860728d";
 const AGENCY_ID = "157597a6-8ba8-4d8e-8bd9-a8b325c8b05b";
 
 export const ChatInterface = () => {
   const [inputValue, setInputValue] = useState("");
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [currentLead, setCurrentLead] = useState<{ id: string; name: string } | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const { chatbot } = useChatbot(CHATBOT_ID);
   const { messages, showGreeting, handleSend, setMessages } = useChat(CHATBOT_ID, currentLead);
+  const { trackInteraction } = useLeadTracking(currentLead?.id);
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
-      // First check localStorage for existing lead
       const storedLead = localStorage.getItem('currentLead');
       if (storedLead) {
         const parsedLead = JSON.parse(storedLead);
-        // Verify if the lead still exists in the database
         const { data: existingLead } = await supabase
           .from("leads")
           .select("id, name, has_completed_onboarding")
@@ -45,7 +43,6 @@ export const ChatInterface = () => {
           showGreeting(parsedLead.name);
           return;
         } else {
-          // If lead doesn't exist in DB, clear localStorage
           localStorage.removeItem('currentLead');
         }
       }
@@ -84,6 +81,9 @@ export const ChatInterface = () => {
       localStorage.setItem('currentLead', JSON.stringify(leadData));
       setShowOnboarding(false);
       showGreeting(name);
+
+      // Track onboarding completion
+      trackInteraction('onboarding_complete', { name });
 
       const { error: convError } = await supabase
         .from("chat_conversations")
@@ -126,6 +126,8 @@ export const ChatInterface = () => {
       e.preventDefault();
       handleSend(inputValue);
       setInputValue("");
+      // Track message sent
+      trackInteraction('message_sent', { type: 'text', length: inputValue.length });
     }
   };
 
@@ -142,7 +144,13 @@ export const ChatInterface = () => {
     };
 
     setMessages((prev) => [...prev, newMessage]);
-    setIsRecording(false);
+
+    // Track audio message
+    trackInteraction('message_sent', { 
+      type: 'audio',
+      duration: audioBlob.size, // Approximate duration based on size
+      hasTranscription: !!transcription
+    });
 
     if (transcription && currentLead) {
       handleSend(transcription);
@@ -167,6 +175,8 @@ export const ChatInterface = () => {
         onSend={() => {
           handleSend(inputValue);
           setInputValue("");
+          // Track message sent
+          trackInteraction('message_sent', { type: 'text', length: inputValue.length });
         }}
         onKeyPress={handleKeyPress}
         onAudioRecorded={handleAudioRecorded}
