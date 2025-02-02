@@ -9,7 +9,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageSquare, Globe } from "lucide-react";
+import { MessageSquare } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface OnboardingModalProps {
   onSubmit: (name: string, phone: string) => void;
@@ -21,13 +22,41 @@ export const OnboardingModal = ({ onSubmit }: OnboardingModalProps) => {
   const [countryCode, setCountryCode] = useState("+57");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !phone.trim()) {
       setError("Por favor completa todos los campos");
       return;
     }
-    onSubmit(name, `${countryCode}${phone}`);
+
+    try {
+      const fullPhone = `${countryCode}${phone}`;
+      
+      // Create or update lead
+      const { data: leadData, error: leadError } = await supabase
+        .from('leads')
+        .upsert({
+          phone: fullPhone,
+          name: name,
+          agency_id: "157597a6-8ba8-4d8e-8bd9-a8b325c8b05b",
+          has_completed_onboarding: true,
+          source: 'web'
+        }, {
+          onConflict: 'phone',
+          ignoreDuplicates: false
+        });
+
+      if (leadError) {
+        console.error('Error creating lead:', leadError);
+        setError("Error al guardar la información");
+        return;
+      }
+
+      onSubmit(name, fullPhone);
+    } catch (err) {
+      console.error('Error in handleSubmit:', err);
+      setError("Error al procesar la información");
+    }
   };
 
   const countryCodes = [

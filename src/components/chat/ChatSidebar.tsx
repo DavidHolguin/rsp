@@ -36,7 +36,7 @@ export const ChatSidebar = ({ open, onClose, currentLeadId }: ChatSidebarProps) 
         .from("agencies")
         .select("name, logo_url, contact_email")
         .eq("id", "157597a6-8ba8-4d8e-8bd9-a8b325c8b05b")
-        .single();
+        .maybeSingle();
 
       if (data) {
         setAgency(data);
@@ -50,7 +50,7 @@ export const ChatSidebar = ({ open, onClose, currentLeadId }: ChatSidebarProps) 
         .from("leads")
         .select("name, phone")
         .eq("id", currentLeadId)
-        .single();
+        .maybeSingle();
 
       if (data) {
         setCurrentLead(data);
@@ -99,7 +99,7 @@ export const ChatSidebar = ({ open, onClose, currentLeadId }: ChatSidebarProps) 
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
                   <AvatarFallback className="bg-[#00A884] text-white">
-                    {currentLead ? getInitials(currentLead.name) : <User className="h-6 w-6" />}
+                    {currentLead?.name ? getInitials(currentLead.name) : <User className="h-6 w-6" />}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
