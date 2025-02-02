@@ -93,27 +93,29 @@ export const ChatSidebar = ({ open, onClose, currentLeadId }: ChatSidebarProps) 
   return (
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent side="left" className="w-[300px] sm:w-[400px] p-0">
-        <div className="flex flex-col h-full bg-background">
-          <div className="p-4 border-b flex items-center justify-between bg-white dark:bg-gray-900">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10">
-                <AvatarFallback className="bg-primary text-primary-foreground">
-                  {currentLead ? getInitials(currentLead.name) : <User className="h-6 w-6" />}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="font-medium">{currentLead?.name || "Usuario"}</span>
-                <span className="text-sm text-muted-foreground">{currentLead?.phone || "Sin teléfono"}</span>
+        <div className="flex flex-col h-full bg-[#1F2C34] dark:bg-[#1F2C34]">
+          <div className="p-4 border-b border-gray-700/50 bg-[#1F2C34] dark:bg-[#1F2C34]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback className="bg-[#00A884] text-white">
+                    {currentLead ? getInitials(currentLead.name) : <User className="h-6 w-6" />}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <span className="font-medium text-white">{currentLead?.name || "Usuario"}</span>
+                  <span className="text-sm text-gray-400">{currentLead?.phone || "Sin teléfono"}</span>
+                </div>
               </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="ml-2 text-gray-400 hover:text-gray-300 hover:bg-[#2A3942]"
+              >
+                <X className="h-5 w-5" />
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="ml-2 hover:bg-gray-100 dark:hover:bg-gray-800"
-            >
-              <X className="h-5 w-5" />
-            </Button>
           </div>
 
           <ScrollArea className="flex-1">
@@ -122,7 +124,7 @@ export const ChatSidebar = ({ open, onClose, currentLeadId }: ChatSidebarProps) 
                 <Button
                   key={item.title}
                   variant="ghost"
-                  className="w-full justify-start gap-2"
+                  className="w-full justify-start gap-2 text-gray-300 hover:text-white hover:bg-[#2A3942]"
                   onClick={() => {
                     navigate(item.path);
                     onClose();
@@ -136,7 +138,7 @@ export const ChatSidebar = ({ open, onClose, currentLeadId }: ChatSidebarProps) 
           </ScrollArea>
 
           {agency && (
-            <div className="p-4 mt-auto border-t bg-muted/50">
+            <div className="p-4 mt-auto border-t border-gray-700/50 bg-[#1F2C34] dark:bg-[#1F2C34]">
               <div className="flex items-center gap-3">
                 {agency.logo_url ? (
                   <img
@@ -145,30 +147,30 @@ export const ChatSidebar = ({ open, onClose, currentLeadId }: ChatSidebarProps) 
                     className="w-10 h-10 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <span className="text-lg font-semibold text-primary">
+                  <div className="w-10 h-10 rounded-full bg-[#2A3942] flex items-center justify-center">
+                    <span className="text-lg font-semibold text-white">
                       {getInitials(agency.name)}
                     </span>
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{agency.name}</p>
-                  <p className="text-sm text-muted-foreground truncate">
+                  <p className="font-medium text-white truncate">{agency.name}</p>
+                  <p className="text-sm text-gray-400 truncate">
                     {agency.contact_email}
                   </p>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-300 hover:bg-[#2A3942]">
                       <MoreVertical className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => navigate("/terms-and-conditions")}>
+                  <DropdownMenuContent align="end" className="bg-[#2A3942] border-gray-700">
+                    <DropdownMenuItem onClick={() => navigate("/terms-and-conditions")} className="text-gray-300 hover:text-white focus:text-white focus:bg-[#374248]">
                       <FileText className="mr-2 h-4 w-4" />
                       Términos y Condiciones
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/usage-policies")}>
+                    <DropdownMenuItem onClick={() => navigate("/usage-policies")} className="text-gray-300 hover:text-white focus:text-white focus:bg-[#374248]">
                       <Shield className="mr-2 h-4 w-4" />
                       Políticas de Uso
                     </DropdownMenuItem>

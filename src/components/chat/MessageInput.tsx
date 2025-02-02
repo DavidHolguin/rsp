@@ -35,7 +35,7 @@ export const MessageInput = ({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 p-3 border-t dark:border-gray-700/50 bg-[#1F2C34] dark:bg-[#1F2C34]">
+    <div className="fixed bottom-0 left-0 right-0 p-3 border-t border-gray-700/50 bg-[#1F2C34] dark:bg-[#1F2C34]">
       <div className="flex items-center gap-2 mx-auto max-w-4xl">
         <div className="flex-1 relative">
           <Input
@@ -44,7 +44,7 @@ export const MessageInput = ({
             onChange={(e) => onChange(e.target.value)}
             onKeyPress={onKeyPress}
             placeholder="Mensaje"
-            className="w-full dark:bg-[#2A3942] dark:text-white border-none rounded-2xl pl-12 pr-12 py-6 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="w-full bg-[#2A3942] dark:bg-[#2A3942] text-white border-none rounded-2xl pl-12 pr-12 py-6 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
           />
           <Popover>
             <PopoverTrigger asChild>
