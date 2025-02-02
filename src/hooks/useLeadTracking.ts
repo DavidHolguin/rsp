@@ -29,6 +29,7 @@ export const useLeadTracking = (leadId: string | null) => {
   const lastActivityRef = useRef<Date>(new Date());
   const isFirstVisitRef = useRef<boolean>(true);
   const retryAttemptsRef = useRef<number>(0);
+  const isMountedRef = useRef<boolean>(true);
   const MAX_RETRY_ATTEMPTS = 3;
   const RETRY_DELAY = 1000;
 
@@ -48,28 +49,34 @@ export const useLeadTracking = (leadId: string | null) => {
   };
 
   const handleError = async (operation: string, error: any, retryFn: () => Promise<void>) => {
+    if (!isMountedRef.current) return;
+
     console.error(`Error in ${operation}:`, error);
     
     if (retryAttemptsRef.current < MAX_RETRY_ATTEMPTS) {
       retryAttemptsRef.current++;
-      const delay = RETRY_DELAY * retryAttemptsRef.current;
+      const delay = RETRY_DELAY * Math.pow(2, retryAttemptsRef.current - 1); // Exponential backoff
       
       console.log(`Retrying ${operation} attempt ${retryAttemptsRef.current} in ${delay}ms`);
       await new Promise(resolve => setTimeout(resolve, delay));
       
-      return retryFn();
+      if (isMountedRef.current) {
+        return retryFn();
+      }
     } else {
-      toast({
-        title: "Error",
-        description: `Failed to ${operation}. Please try again later.`,
-        variant: "destructive",
-      });
+      if (isMountedRef.current) {
+        toast({
+          title: "Error",
+          description: `Failed to ${operation}. Please try again later.`,
+          variant: "destructive",
+        });
+      }
       retryAttemptsRef.current = 0;
     }
   };
 
   const startTracking = async () => {
-    if (!leadId) return;
+    if (!leadId || !isMountedRef.current) return;
 
     try {
       const { data: existingLead, error: leadError } = await supabase
@@ -240,7 +247,7 @@ export const useLeadTracking = (leadId: string | null) => {
   };
 
   const endTracking = async () => {
-    if (!sessionRef.current || !leadId) return;
+    if (!sessionRef.current || !leadId || !isMountedRef.current) return;
 
     try {
       const sessionDuration = new Date().getTime() - startTimeRef.current.getTime();
@@ -284,12 +291,16 @@ export const useLeadTracking = (leadId: string | null) => {
   };
 
   useEffect(() => {
+    isMountedRef.current = true;
+    
     if (leadId) {
       startTracking();
     }
 
     const handleActivity = () => {
-      updateActivity();
+      if (isMountedRef.current) {
+        updateActivity();
+      }
     };
 
     document.addEventListener('mousemove', handleActivity);
@@ -298,6 +309,8 @@ export const useLeadTracking = (leadId: string | null) => {
     document.addEventListener('click', handleActivity);
 
     const handleVisibilityChange = () => {
+      if (!isMountedRef.current) return;
+      
       if (document.hidden) {
         endTracking();
       } else {
@@ -313,6 +326,7 @@ export const useLeadTracking = (leadId: string | null) => {
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
+      isMountedRef.current = false;
       document.removeEventListener('mousemove', handleActivity);
       document.removeEventListener('keypress', handleActivity);
       document.removeEventListener('scroll', handleActivity);
