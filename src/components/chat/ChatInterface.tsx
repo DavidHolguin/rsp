@@ -23,12 +23,10 @@ export const ChatInterface = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  // Initialize hooks outside of any conditions
   const { chatbot } = useChatbot(CHATBOT_ID);
   const { messages, showGreeting, handleSend, setMessages } = useChat(CHATBOT_ID, currentLead);
   const { trackInteraction } = useLeadTracking(currentLead?.id);
 
-  // Always initialize storedLead
   const storedLead = localStorage.getItem('currentLead');
   const parsedLead = storedLead ? JSON.parse(storedLead) : null;
 
@@ -133,28 +131,12 @@ export const ChatInterface = () => {
   };
 
   const handleAudioRecorded = async (audioBlob: Blob, transcription?: string) => {
-    const audioUrl = URL.createObjectURL(audioBlob);
-    
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      content: audioUrl,
-      type: "audio",
-      timestamp: Date.now(),
-      sender: "user",
-      metadata: transcription ? { transcription } : undefined
-    };
-
-    setMessages((prev) => [...prev, newMessage]);
-
-    trackInteraction('message_sent', { 
-      type: 'audio',
-      duration: audioBlob.size,
-      hasTranscription: !!transcription
-    });
-
-    // Send transcription to chatbot without creating a new message
     if (transcription && currentLead) {
-      handleSend(transcription, true);
+      handleSend(transcription);
+      trackInteraction('message_sent', { 
+        type: 'audio',
+        hasTranscription: true
+      });
     }
   };
 

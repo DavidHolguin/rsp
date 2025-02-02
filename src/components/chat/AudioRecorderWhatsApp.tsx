@@ -113,7 +113,12 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
 
         if (error) throw error;
         
-        onAudioRecorded(audioBlob, data.text);
+        // Only send the transcription to the chat
+        if (data.text) {
+          onAudioRecorded(audioBlob, data.text);
+        } else {
+          throw new Error('No se pudo transcribir el audio');
+        }
       };
       
       reader.readAsDataURL(audioBlob);
