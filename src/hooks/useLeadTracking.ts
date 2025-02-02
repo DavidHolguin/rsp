@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { UAParser } from 'ua-parser-js';
 import { Json } from '@/integrations/supabase/types';
+import { useToast } from "@/components/ui/use-toast";
 
 interface LeadTrackingData {
   id?: string;
@@ -27,7 +28,9 @@ export const useLeadTracking = (leadId: string | null) => {
   const lastActivityRef = useRef<Date>(new Date());
   const isFirstVisitRef = useRef<boolean>(true);
   const retryAttemptsRef = useRef<number>(0);
+  const { toast } = useToast();
   const MAX_RETRY_ATTEMPTS = 3;
+  const RETRY_DELAY = 1000; // 1 second
 
   const getDeviceInfo = () => {
     const parser = new UAParser();
@@ -44,11 +47,31 @@ export const useLeadTracking = (leadId: string | null) => {
     };
   };
 
+  const handleError = async (operation: string, error: any, retryFn: () => Promise<void>) => {
+    console.error(`Error in ${operation}:`, error);
+    
+    if (retryAttemptsRef.current < MAX_RETRY_ATTEMPTS) {
+      retryAttemptsRef.current++;
+      const delay = RETRY_DELAY * retryAttemptsRef.current;
+      
+      console.log(`Retrying ${operation} attempt ${retryAttemptsRef.current} in ${delay}ms`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      
+      return retryFn();
+    } else {
+      toast({
+        title: "Error",
+        description: `Failed to ${operation}. Please try again later.`,
+        variant: "destructive",
+      });
+      retryAttemptsRef.current = 0;
+    }
+  };
+
   const startTracking = async () => {
     if (!leadId) return;
 
     try {
-      // Check if this is actually the first visit
       const { data: existingLead, error: leadError } = await supabase
         .from('leads')
         .select('total_visits, created_at, last_interaction')
@@ -56,18 +79,12 @@ export const useLeadTracking = (leadId: string | null) => {
         .maybeSingle();
 
       if (leadError) {
-        console.error('Error fetching lead:', leadError);
-        if (retryAttemptsRef.current < MAX_RETRY_ATTEMPTS) {
-          retryAttemptsRef.current++;
-          setTimeout(startTracking, 1000 * retryAttemptsRef.current);
-        }
-        return;
+        throw leadError;
       }
 
       const isFirstVisit = existingLead?.created_at === existingLead?.last_interaction;
       isFirstVisitRef.current = isFirstVisit;
 
-      // Create new session
       const trackingData: LeadTrackingData = {
         lead_id: leadId,
         session_start: new Date().toISOString(),
@@ -94,18 +111,12 @@ export const useLeadTracking = (leadId: string | null) => {
         .single();
 
       if (sessionError) {
-        console.error('Error creating session:', sessionError);
-        if (retryAttemptsRef.current < MAX_RETRY_ATTEMPTS) {
-          retryAttemptsRef.current++;
-          setTimeout(startTracking, 1000 * retryAttemptsRef.current);
-        }
-        return;
+        throw sessionError;
       }
 
       sessionRef.current = session.id;
       retryAttemptsRef.current = 0;
 
-      // Only increment total_visits if it's a new session
       if (isFirstVisit || !existingLead?.total_visits) {
         await supabase
           .from('leads')
@@ -115,7 +126,6 @@ export const useLeadTracking = (leadId: string | null) => {
           })
           .eq('id', leadId);
       } else {
-        // Check if last interaction was more than 30 minutes ago
         const lastInteraction = new Date(existingLead.last_interaction);
         const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
         
@@ -129,13 +139,8 @@ export const useLeadTracking = (leadId: string | null) => {
             .eq('id', leadId);
         }
       }
-
     } catch (error) {
-      console.error('Error starting tracking:', error);
-      if (retryAttemptsRef.current < MAX_RETRY_ATTEMPTS) {
-        retryAttemptsRef.current++;
-        setTimeout(startTracking, 1000 * retryAttemptsRef.current);
-      }
+      await handleError('start tracking', error, startTracking);
     }
   };
 
@@ -145,17 +150,18 @@ export const useLeadTracking = (leadId: string | null) => {
     const now = new Date();
     const timeSinceLastActivity = now.getTime() - lastActivityRef.current.getTime();
     
-    // Solo actualizar si han pasado más de 5 segundos desde la última actividad
     if (timeSinceLastActivity > 5000) {
       lastActivityRef.current = now;
       
       try {
-        await supabase
+        const { error } = await supabase
           .from('lead_tracking')
           .update({
             last_activity: now.toISOString()
           })
           .eq('id', sessionRef.current);
+
+        if (error) throw error;
       } catch (error) {
         console.error('Error updating activity:', error);
       }
@@ -166,11 +172,13 @@ export const useLeadTracking = (leadId: string | null) => {
     if (!sessionRef.current) return;
 
     try {
-      const { data: currentTracking } = await supabase
+      const { data: currentTracking, error: fetchError } = await supabase
         .from('lead_tracking')
         .select('page_views')
         .eq('id', sessionRef.current)
         .single();
+
+      if (fetchError) throw fetchError;
 
       const updatedPageViews = Array.isArray(currentTracking?.page_views) 
         ? [...currentTracking.page_views] 
@@ -182,12 +190,14 @@ export const useLeadTracking = (leadId: string | null) => {
         referrer: document.referrer
       });
 
-      await supabase
+      const { error: updateError } = await supabase
         .from('lead_tracking')
         .update({ page_views: updatedPageViews })
         .eq('id', sessionRef.current);
+
+      if (updateError) throw updateError;
     } catch (error) {
-      console.error('Error tracking page view:', error);
+      await handleError('track page view', error, () => trackPageView(path));
     }
   };
 
@@ -195,16 +205,13 @@ export const useLeadTracking = (leadId: string | null) => {
     if (!sessionRef.current || !leadId) return;
 
     try {
-      const { data: currentTracking, error: trackingError } = await supabase
+      const { data: currentTracking, error: fetchError } = await supabase
         .from('lead_tracking')
         .select('interactions')
         .eq('id', sessionRef.current)
         .maybeSingle();
 
-      if (trackingError) {
-        console.error('Error fetching tracking:', trackingError);
-        return;
-      }
+      if (fetchError) throw fetchError;
 
       const updatedInteractions = Array.isArray(currentTracking?.interactions) 
         ? [...currentTracking.interactions] 
@@ -221,12 +228,8 @@ export const useLeadTracking = (leadId: string | null) => {
         .update({ interactions: updatedInteractions })
         .eq('id', sessionRef.current);
 
-      if (updateError) {
-        console.error('Error updating interactions:', updateError);
-        return;
-      }
+      if (updateError) throw updateError;
 
-      // Update last_interaction in leads
       const { error: leadError } = await supabase
         .from('leads')
         .update({ 
@@ -234,12 +237,9 @@ export const useLeadTracking = (leadId: string | null) => {
         })
         .eq('id', leadId);
 
-      if (leadError) {
-        console.error('Error updating lead:', leadError);
-      }
-
+      if (leadError) throw leadError;
     } catch (error) {
-      console.error('Error tracking interaction:', error);
+      await handleError('track interaction', error, () => trackInteraction(type, metadata));
     }
   };
 
@@ -253,28 +253,20 @@ export const useLeadTracking = (leadId: string | null) => {
         .from('lead_tracking')
         .update({
           session_end: new Date().toISOString(),
-          session_duration: Math.floor(sessionDuration / 1000) // Convert to seconds
+          session_duration: Math.floor(sessionDuration / 1000)
         })
         .eq('id', sessionRef.current);
 
-      if (sessionError) {
-        console.error('Error updating session:', sessionError);
-        return;
-      }
+      if (sessionError) throw sessionError;
 
-      // Update total time in leads
       const { data: currentLead, error: leadError } = await supabase
         .from('leads')
         .select('total_time_spent')
         .eq('id', leadId)
         .maybeSingle();
 
-      if (leadError) {
-        console.error('Error fetching lead time:', leadError);
-        return;
-      }
+      if (leadError) throw leadError;
 
-      // Parse the interval string to get seconds
       const currentTimeInSeconds = currentLead?.total_time_spent 
         ? parseInt(currentLead.total_time_spent.toString().split(' ')[0]) 
         : 0;
@@ -288,12 +280,10 @@ export const useLeadTracking = (leadId: string | null) => {
         })
         .eq('id', leadId);
 
-      if (updateError) {
-        console.error('Error updating total time:', updateError);
-      }
+      if (updateError) throw updateError;
 
     } catch (error) {
-      console.error('Error ending tracking:', error);
+      await handleError('end tracking', error, endTracking);
     }
   };
 
