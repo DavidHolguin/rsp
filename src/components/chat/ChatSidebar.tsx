@@ -92,7 +92,7 @@ export const ChatSidebar = ({ open, onClose, currentLeadId }: ChatSidebarProps) 
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent side="left" className="w-[300px] sm:w-[400px] p-0">
+      <SheetContent side="left" className="w-[300px] sm:w-[400px] p-0 border-r border-[#2A3942]">
         <div className="flex flex-col h-full bg-[#1F2C34] dark:bg-[#1F2C34]">
           <div className="p-4 border-b border-[#2A3942] bg-[#1F2C34] dark:bg-[#1F2C34]">
             <div className="flex items-center justify-between">
