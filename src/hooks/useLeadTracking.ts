@@ -23,15 +23,14 @@ interface LeadTrackingData {
 }
 
 export const useLeadTracking = (leadId: string | null) => {
-  const { toast } = useToast();
   const sessionRef = useRef<string | null>(null);
   const startTimeRef = useRef<Date>(new Date());
   const lastActivityRef = useRef<Date>(new Date());
   const isFirstVisitRef = useRef<boolean>(true);
   const retryAttemptsRef = useRef<number>(0);
-  const isMountedRef = useRef<boolean>(true);
+  const { toast } = useToast();
   const MAX_RETRY_ATTEMPTS = 3;
-  const RETRY_DELAY = 1000;
+  const RETRY_DELAY = 1000; // 1 second
 
   const getDeviceInfo = () => {
     const parser = new UAParser();
@@ -49,34 +48,28 @@ export const useLeadTracking = (leadId: string | null) => {
   };
 
   const handleError = async (operation: string, error: any, retryFn: () => Promise<void>) => {
-    if (!isMountedRef.current) return;
-
     console.error(`Error in ${operation}:`, error);
     
     if (retryAttemptsRef.current < MAX_RETRY_ATTEMPTS) {
       retryAttemptsRef.current++;
-      const delay = RETRY_DELAY * Math.pow(2, retryAttemptsRef.current - 1); // Exponential backoff
+      const delay = RETRY_DELAY * retryAttemptsRef.current;
       
       console.log(`Retrying ${operation} attempt ${retryAttemptsRef.current} in ${delay}ms`);
       await new Promise(resolve => setTimeout(resolve, delay));
       
-      if (isMountedRef.current) {
-        return retryFn();
-      }
+      return retryFn();
     } else {
-      if (isMountedRef.current) {
-        toast({
-          title: "Error",
-          description: `Failed to ${operation}. Please try again later.`,
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Error",
+        description: `Failed to ${operation}. Please try again later.`,
+        variant: "destructive",
+      });
       retryAttemptsRef.current = 0;
     }
   };
 
   const startTracking = async () => {
-    if (!leadId || !isMountedRef.current) return;
+    if (!leadId) return;
 
     try {
       const { data: existingLead, error: leadError } = await supabase
@@ -85,7 +78,9 @@ export const useLeadTracking = (leadId: string | null) => {
         .eq('id', leadId)
         .maybeSingle();
 
-      if (leadError) throw leadError;
+      if (leadError) {
+        throw leadError;
+      }
 
       const isFirstVisit = existingLead?.created_at === existingLead?.last_interaction;
       isFirstVisitRef.current = isFirstVisit;
@@ -115,7 +110,9 @@ export const useLeadTracking = (leadId: string | null) => {
         .select('id')
         .single();
 
-      if (sessionError) throw sessionError;
+      if (sessionError) {
+        throw sessionError;
+      }
 
       sessionRef.current = session.id;
       retryAttemptsRef.current = 0;
@@ -247,7 +244,7 @@ export const useLeadTracking = (leadId: string | null) => {
   };
 
   const endTracking = async () => {
-    if (!sessionRef.current || !leadId || !isMountedRef.current) return;
+    if (!sessionRef.current || !leadId) return;
 
     try {
       const sessionDuration = new Date().getTime() - startTimeRef.current.getTime();
@@ -291,16 +288,12 @@ export const useLeadTracking = (leadId: string | null) => {
   };
 
   useEffect(() => {
-    isMountedRef.current = true;
-    
     if (leadId) {
       startTracking();
     }
 
     const handleActivity = () => {
-      if (isMountedRef.current) {
-        updateActivity();
-      }
+      updateActivity();
     };
 
     document.addEventListener('mousemove', handleActivity);
@@ -309,8 +302,6 @@ export const useLeadTracking = (leadId: string | null) => {
     document.addEventListener('click', handleActivity);
 
     const handleVisibilityChange = () => {
-      if (!isMountedRef.current) return;
-      
       if (document.hidden) {
         endTracking();
       } else {
@@ -326,7 +317,6 @@ export const useLeadTracking = (leadId: string | null) => {
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
-      isMountedRef.current = false;
       document.removeEventListener('mousemove', handleActivity);
       document.removeEventListener('keypress', handleActivity);
       document.removeEventListener('scroll', handleActivity);

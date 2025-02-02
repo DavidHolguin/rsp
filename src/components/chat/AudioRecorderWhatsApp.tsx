@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Mic, ChevronLeft } from "lucide-react";
+import { Mic, X, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
@@ -57,7 +57,6 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
-      setRecordingTime(0);
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -90,7 +89,6 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         setIsRecording(false);
         clearInterval(timerRef.current);
-        setRecordingTime(0);
         await processAndSendAudio(audioBlob);
         resolve();
       };
@@ -113,12 +111,8 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
 
         if (error) throw error;
         
-        // Only send the transcription to the chat
-        if (data.text) {
-          onAudioRecorded(audioBlob, data.text);
-        } else {
-          throw new Error('No se pudo transcribir el audio');
-        }
+        onAudioRecorded(audioBlob, data.text);
+        setRecordingTime(0);
       };
       
       reader.readAsDataURL(audioBlob);
