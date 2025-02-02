@@ -52,10 +52,18 @@ export const useLeadTracking = (leadId: string | null) => {
       if (error) throw error;
       sessionRef.current = session.id;
 
-      // Update lead's total_visits using raw SQL
+      // Incrementar total_visits directamente
+      const { data: currentLead } = await supabase
+        .from('leads')
+        .select('total_visits')
+        .eq('id', leadId)
+        .single();
+
       await supabase
         .from('leads')
-        .update({ total_visits: supabase.rpc('calculate_total_visits', { p_lead_id: leadId }) })
+        .update({ 
+          total_visits: (currentLead?.total_visits || 0) + 1 
+        })
         .eq('id', leadId);
 
     } catch (error) {
@@ -67,23 +75,25 @@ export const useLeadTracking = (leadId: string | null) => {
     if (!sessionRef.current) return;
 
     try {
+      const { data: currentTracking } = await supabase
+        .from('lead_tracking')
+        .select('page_views')
+        .eq('id', sessionRef.current)
+        .single();
+
+      const updatedPageViews = Array.isArray(currentTracking?.page_views) 
+        ? [...currentTracking.page_views] 
+        : [];
+
+      updatedPageViews.push({
+        path,
+        timestamp: new Date().toISOString(),
+        referrer: document.referrer
+      });
+
       const { error } = await supabase
         .from('lead_tracking')
-        .update({
-          page_views: [
-            ...await supabase
-              .from('lead_tracking')
-              .select('page_views')
-              .eq('id', sessionRef.current)
-              .single()
-              .then(({ data }) => data?.page_views || []),
-            {
-              path,
-              timestamp: new Date().toISOString(),
-              referrer: document.referrer
-            }
-          ]
-        })
+        .update({ page_views: updatedPageViews })
         .eq('id', sessionRef.current);
 
       if (error) throw error;
@@ -96,23 +106,25 @@ export const useLeadTracking = (leadId: string | null) => {
     if (!sessionRef.current) return;
 
     try {
+      const { data: currentTracking } = await supabase
+        .from('lead_tracking')
+        .select('interactions')
+        .eq('id', sessionRef.current)
+        .single();
+
+      const updatedInteractions = Array.isArray(currentTracking?.interactions) 
+        ? [...currentTracking.interactions] 
+        : [];
+
+      updatedInteractions.push({
+        type,
+        timestamp: new Date().toISOString(),
+        metadata
+      });
+
       const { error } = await supabase
         .from('lead_tracking')
-        .update({
-          interactions: [
-            ...await supabase
-              .from('lead_tracking')
-              .select('interactions')
-              .eq('id', sessionRef.current)
-              .single()
-              .then(({ data }) => data?.interactions || []),
-            {
-              type,
-              timestamp: new Date().toISOString(),
-              metadata
-            }
-          ]
-        })
+        .update({ interactions: updatedInteractions })
         .eq('id', sessionRef.current);
 
       if (error) throw error;
@@ -135,12 +147,22 @@ export const useLeadTracking = (leadId: string | null) => {
 
       if (error) throw error;
 
-      // Calculate and update total time spent
+      // Calculate session duration
       const sessionDuration = new Date().getTime() - startTimeRef.current.getTime();
+      
+      // Convert milliseconds to interval string (PostgreSQL format)
+      const intervalStr = `${Math.floor(sessionDuration / 1000)} seconds`;
+      
+      const { data: currentLead } = await supabase
+        .from('leads')
+        .select('total_time_spent')
+        .eq('id', leadId)
+        .single();
+
       await supabase
         .from('leads')
         .update({ 
-          total_time_spent: supabase.rpc('calculate_total_time_spent', { p_lead_id: leadId })
+          total_time_spent: currentLead?.total_time_spent || '0 seconds'
         })
         .eq('id', leadId);
 
