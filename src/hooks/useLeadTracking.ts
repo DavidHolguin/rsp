@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import UAParser from 'ua-parser-js';
+import { UAParser } from 'ua-parser-js';
 
 export const useLeadTracking = (leadId: string | null) => {
   const sessionRef = useRef<string | null>(null);
@@ -52,8 +52,11 @@ export const useLeadTracking = (leadId: string | null) => {
       if (error) throw error;
       sessionRef.current = session.id;
 
-      // Update lead's total_visits
-      await supabase.rpc('increment_lead_visits', { p_lead_id: leadId });
+      // Update lead's total_visits using raw SQL
+      await supabase
+        .from('leads')
+        .update({ total_visits: supabase.rpc('calculate_total_visits', { p_lead_id: leadId }) })
+        .eq('id', leadId);
 
     } catch (error) {
       console.error('Error starting tracking:', error);
@@ -67,11 +70,19 @@ export const useLeadTracking = (leadId: string | null) => {
       const { error } = await supabase
         .from('lead_tracking')
         .update({
-          page_views: supabase.sql`array_append(page_views, ${JSON.stringify({
-            path,
-            timestamp: new Date().toISOString(),
-            referrer: document.referrer
-          })})`
+          page_views: [
+            ...await supabase
+              .from('lead_tracking')
+              .select('page_views')
+              .eq('id', sessionRef.current)
+              .single()
+              .then(({ data }) => data?.page_views || []),
+            {
+              path,
+              timestamp: new Date().toISOString(),
+              referrer: document.referrer
+            }
+          ]
         })
         .eq('id', sessionRef.current);
 
@@ -88,11 +99,19 @@ export const useLeadTracking = (leadId: string | null) => {
       const { error } = await supabase
         .from('lead_tracking')
         .update({
-          interactions: supabase.sql`array_append(interactions, ${JSON.stringify({
-            type,
-            timestamp: new Date().toISOString(),
-            metadata
-          })})`
+          interactions: [
+            ...await supabase
+              .from('lead_tracking')
+              .select('interactions')
+              .eq('id', sessionRef.current)
+              .single()
+              .then(({ data }) => data?.interactions || []),
+            {
+              type,
+              timestamp: new Date().toISOString(),
+              metadata
+            }
+          ]
         })
         .eq('id', sessionRef.current);
 
@@ -118,10 +137,12 @@ export const useLeadTracking = (leadId: string | null) => {
 
       // Calculate and update total time spent
       const sessionDuration = new Date().getTime() - startTimeRef.current.getTime();
-      await supabase.rpc('update_lead_time_spent', { 
-        p_lead_id: leadId,
-        p_duration: Math.floor(sessionDuration / 1000) // Convert to seconds
-      });
+      await supabase
+        .from('leads')
+        .update({ 
+          total_time_spent: supabase.rpc('calculate_total_time_spent', { p_lead_id: leadId })
+        })
+        .eq('id', leadId);
 
     } catch (error) {
       console.error('Error ending tracking:', error);
