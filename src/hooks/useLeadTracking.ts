@@ -2,6 +2,22 @@ import { useEffect, useRef } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { UAParser } from 'ua-parser-js';
 
+interface LeadTrackingData {
+  id?: string;
+  lead_id?: string;
+  landing_page_id?: string;
+  session_start?: string;
+  session_end?: string;
+  page_views?: any;
+  interactions?: any;
+  created_at?: string;
+  device_info?: any;
+  user_preferences?: any;
+  ip_address?: string;
+  user_agent?: string;
+  location_info?: any;
+}
+
 export const useLeadTracking = (leadId: string | null) => {
   const sessionRef = useRef<string | null>(null);
   const startTimeRef = useRef<Date>(new Date());
@@ -30,7 +46,7 @@ export const useLeadTracking = (leadId: string | null) => {
       // Check if this is actually the first visit
       const { data: existingLead } = await supabase
         .from('leads')
-        .select('total_visits, created_at')
+        .select('total_visits, created_at, last_interaction')
         .eq('id', leadId)
         .single();
 
@@ -38,33 +54,35 @@ export const useLeadTracking = (leadId: string | null) => {
       isFirstVisitRef.current = isFirstVisit;
 
       // Create new session
+      const trackingData: LeadTrackingData = {
+        lead_id: leadId,
+        session_start: new Date().toISOString(),
+        page_views: [{
+          path: window.location.pathname,
+          timestamp: new Date().toISOString(),
+          referrer: document.referrer
+        }],
+        interactions: [],
+        device_info: {
+          ...getDeviceInfo(),
+          userAgent: navigator.userAgent,
+          language: navigator.language,
+          screenResolution: `${window.screen.width}x${window.screen.height}`,
+          windowSize: `${window.innerWidth}x${window.innerHeight}`,
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        }
+      };
+
       const { data: session, error } = await supabase
         .from('lead_tracking')
-        .insert({
-          lead_id: leadId,
-          session_start: new Date().toISOString(),
-          page_views: [{
-            path: window.location.pathname,
-            timestamp: new Date().toISOString(),
-            referrer: document.referrer
-          }],
-          interactions: [],
-          device_info: {
-            ...getDeviceInfo(),
-            userAgent: navigator.userAgent,
-            language: navigator.language,
-            screenResolution: `${window.screen.width}x${window.screen.height}`,
-            windowSize: `${window.innerWidth}x${window.innerHeight}`,
-            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-          }
-        })
+        .insert(trackingData)
         .select('id')
         .single();
 
       if (error) throw error;
       sessionRef.current = session.id;
 
-      // Solo incrementar total_visits si es una nueva sesión genuina
+      // Only increment total_visits if it's a new session
       if (isFirstVisit || !existingLead?.total_visits) {
         await supabase
           .from('leads')
@@ -74,7 +92,7 @@ export const useLeadTracking = (leadId: string | null) => {
           })
           .eq('id', leadId);
       } else {
-        // Verificar si la última interacción fue hace más de 30 minutos
+        // Check if last interaction was more than 30 minutes ago
         const lastInteraction = new Date(existingLead.last_interaction);
         const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
         
@@ -225,18 +243,15 @@ export const useLeadTracking = (leadId: string | null) => {
       startTracking();
     }
 
-    // Configurar detectores de actividad
     const handleActivity = () => {
       updateActivity();
     };
 
-    // Eventos de actividad del usuario
     document.addEventListener('mousemove', handleActivity);
     document.addEventListener('keypress', handleActivity);
     document.addEventListener('scroll', handleActivity);
     document.addEventListener('click', handleActivity);
 
-    // Configurar detector de visibilidad
     const handleVisibilityChange = () => {
       if (document.hidden) {
         endTracking();
@@ -245,7 +260,6 @@ export const useLeadTracking = (leadId: string | null) => {
       }
     };
 
-    // Configurar detector de cierre de ventana
     const handleBeforeUnload = () => {
       endTracking();
     };
@@ -253,7 +267,6 @@ export const useLeadTracking = (leadId: string | null) => {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleBeforeUnload);
 
-    // Cleanup
     return () => {
       document.removeEventListener('mousemove', handleActivity);
       document.removeEventListener('keypress', handleActivity);

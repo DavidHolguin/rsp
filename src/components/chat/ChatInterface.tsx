@@ -27,11 +27,13 @@ export const ChatInterface = () => {
   const { messages, showGreeting, handleSend, setMessages } = useChat(CHATBOT_ID, currentLead);
   const { trackInteraction } = useLeadTracking(currentLead?.id);
 
+  // Always initialize these values
+  const storedLead = localStorage.getItem('currentLead');
+  const parsedLead = storedLead ? JSON.parse(storedLead) : null;
+
   useEffect(() => {
     const checkOnboardingStatus = async () => {
-      const storedLead = localStorage.getItem('currentLead');
-      if (storedLead) {
-        const parsedLead = JSON.parse(storedLead);
+      if (parsedLead) {
         const { data: existingLead } = await supabase
           .from("leads")
           .select("id, name, has_completed_onboarding")
@@ -126,7 +128,6 @@ export const ChatInterface = () => {
       e.preventDefault();
       handleSend(inputValue);
       setInputValue("");
-      // Track message sent
       trackInteraction('message_sent', { type: 'text', length: inputValue.length });
     }
   };
@@ -145,10 +146,9 @@ export const ChatInterface = () => {
 
     setMessages((prev) => [...prev, newMessage]);
 
-    // Track audio message
     trackInteraction('message_sent', { 
       type: 'audio',
-      duration: audioBlob.size, // Approximate duration based on size
+      duration: audioBlob.size,
       hasTranscription: !!transcription
     });
 
@@ -175,7 +175,6 @@ export const ChatInterface = () => {
         onSend={() => {
           handleSend(inputValue);
           setInputValue("");
-          // Track message sent
           trackInteraction('message_sent', { type: 'text', length: inputValue.length });
         }}
         onKeyPress={handleKeyPress}
