@@ -15,19 +15,7 @@ export const useChat = (chatbotId: string, currentLead: { id: string; name: stri
   const { toast } = useToast();
 
   const showGreeting = (name: string, welcomeMessage?: string | null, quickQuestions?: string[] | null) => {
-    const now = new Date();
-    const zonedDate = toZonedTime(now, timeZone);
-    const hour = zonedDate.getHours();
-    
-    let timeGreeting = "";
-    if (hour >= 5 && hour < 12) timeGreeting = "Buenos días";
-    else if (hour >= 12 && hour < 18) timeGreeting = "Buenas tardes";
-    else if (hour >= 18 && hour < 24) timeGreeting = "Buenas noches";
-    else timeGreeting = "Buenas madrugadas";
-
-    const message = welcomeMessage 
-      ? `${timeGreeting}, ${name}. ${welcomeMessage}`
-      : `${timeGreeting}, ${name}. ¿En qué puedo ayudarte hoy?`;
+    const message = welcomeMessage || `¡Hola ${name}! ¿En qué puedo ayudarte hoy?`;
 
     setMessages([{
       id: "greeting",
