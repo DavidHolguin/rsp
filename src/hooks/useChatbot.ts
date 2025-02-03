@@ -28,7 +28,17 @@ export const useChatbot = (chatbotId: string) => {
       }
 
       if (data) {
-        setChatbot(data);
+        // Cast the quick_questions to string[] since we know it's stored as a string array in Supabase
+        const chatbotData: Chatbot = {
+          id: data.id,
+          name: data.name,
+          icon_url: data.icon_url,
+          description: data.description,
+          welcome_message: data.welcome_message,
+          quick_questions: Array.isArray(data.quick_questions) ? data.quick_questions : []
+        };
+        
+        setChatbot(chatbotData);
         document.title = data.name || "Chat Asistente Virtual";
         const metaDescription = document.querySelector('meta[name="description"]');
         if (metaDescription) {
