@@ -4,9 +4,10 @@ import { ChatBubble } from "./ChatBubble";
 interface MessageListProps {
   messages: Message[];
   messagesEndRef: React.RefObject<HTMLDivElement>;
+  onQuickReplyClick?: (text: string) => void;
 }
 
-export const MessageList = ({ messages, messagesEndRef }: MessageListProps) => {
+export const MessageList = ({ messages, messagesEndRef, onQuickReplyClick }: MessageListProps) => {
   return (
     <div 
       className="flex-1 overflow-y-auto p-4 space-y-4 mt-[72px] mb-[72px] scrollbar-none touch-pan-y"
@@ -20,7 +21,11 @@ export const MessageList = ({ messages, messagesEndRef }: MessageListProps) => {
       }}
     >
       {messages.map((message) => (
-        <ChatBubble key={message.id} message={message} />
+        <ChatBubble 
+          key={message.id} 
+          message={message} 
+          onQuickReplyClick={onQuickReplyClick}
+        />
       ))}
       <div ref={messagesEndRef} />
     </div>

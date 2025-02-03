@@ -5,13 +5,15 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Play, Pause } from "lucide-react";
 import { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
 
 interface ChatBubbleProps {
   message: Message;
   isAgent?: boolean;
+  onQuickReplyClick?: (text: string) => void;
 }
 
-export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
+export const ChatBubble = ({ message, isAgent = false, onQuickReplyClick }: ChatBubbleProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [currentTime, setCurrentTime] = useState(0);
@@ -86,6 +88,21 @@ export const ChatBubble = ({ message, isAgent = false }: ChatBubbleProps) => {
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+              {message.metadata?.quickReplies && message.sender === "agent" && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {message.metadata.quickReplies.map((reply: string, index: number) => (
+                    <Button
+                      key={index}
+                      variant="secondary"
+                      size="sm"
+                      className="bg-[#00A884] hover:bg-[#00A884]/90 text-white"
+                      onClick={() => onQuickReplyClick?.(reply)}
+                    >
+                      {reply}
+                    </Button>
+                  ))}
                 </div>
               )}
             </>

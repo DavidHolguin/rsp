@@ -14,7 +14,7 @@ export const useChat = (chatbotId: string, currentLead: { id: string; name: stri
   const [lastMessageTime, setLastMessageTime] = useState<Date | null>(null);
   const { toast } = useToast();
 
-  const showGreeting = (name: string) => {
+  const showGreeting = (name: string, welcomeMessage?: string | null, quickQuestions?: string[] | null) => {
     const now = new Date();
     const zonedDate = toZonedTime(now, timeZone);
     const hour = zonedDate.getHours();
@@ -22,12 +22,17 @@ export const useChat = (chatbotId: string, currentLead: { id: string; name: stri
     if (hour >= 12 && hour < 18) greeting = "Buenas tardes";
     if (hour >= 18) greeting = "Buenas noches";
 
+    const message = welcomeMessage || `${greeting}, ${name}. ¿En qué puedo ayudarte hoy?`;
+
     setMessages([{
       id: "greeting",
-      content: `${greeting}, ${name}. ¿En qué puedo ayudarte hoy?`,
+      content: message,
       type: "text",
       timestamp: Date.now(),
       sender: "agent",
+      metadata: quickQuestions?.length ? {
+        quickReplies: quickQuestions
+      } : undefined
     }]);
   };
 

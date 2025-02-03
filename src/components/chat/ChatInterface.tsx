@@ -41,7 +41,7 @@ export const ChatInterface = () => {
 
         if (existingLead) {
           setCurrentLead(parsedLead);
-          showGreeting(parsedLead.name);
+          showGreeting(parsedLead.name, chatbot?.welcome_message, chatbot?.quick_questions);
           return;
         } else {
           localStorage.removeItem('currentLead');
@@ -52,7 +52,7 @@ export const ChatInterface = () => {
     };
 
     checkOnboardingStatus();
-  }, []);
+  }, [chatbot]);
 
   const handleOnboarding = async (name: string, phone: string) => {
     try {
@@ -81,7 +81,7 @@ export const ChatInterface = () => {
       setCurrentLead(leadData);
       localStorage.setItem('currentLead', JSON.stringify(leadData));
       setShowOnboarding(false);
-      showGreeting(name);
+      showGreeting(name, chatbot?.welcome_message, chatbot?.quick_questions);
 
       trackInteraction('onboarding_complete', { name });
 
@@ -130,6 +130,11 @@ export const ChatInterface = () => {
     }
   };
 
+  const handleQuickReplyClick = (text: string) => {
+    handleSend(text);
+    trackInteraction('message_sent', { type: 'quick_reply', text });
+  };
+
   const handleAudioRecorded = async (audioBlob: Blob, transcription?: string) => {
     if (transcription && currentLead) {
       handleSend(transcription);
@@ -150,6 +155,7 @@ export const ChatInterface = () => {
       <MessageList 
         messages={messages}
         messagesEndRef={messagesEndRef}
+        onQuickReplyClick={handleQuickReplyClick}
       />
 
       <MessageInput
