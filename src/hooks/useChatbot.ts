@@ -13,7 +13,7 @@ export const useChatbot = (chatbotId: string) => {
     try {
       const { data, error } = await supabase
         .from("chatbots")
-        .select("name, icon_url, description")
+        .select("id, name, icon_url, description, welcome_message, quick_questions")
         .eq("id", chatbotId)
         .maybeSingle();
 
