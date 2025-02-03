@@ -108,44 +108,37 @@ export const ChatBubble = ({ message, isAgent = false, onQuickReplyClick }: Chat
             </>
           )}
           {message.type === "audio" && (
-            <>
-              <div className="flex items-center gap-2 min-w-[180px] max-w-[280px] py-1">
-                <button
-                  onClick={handlePlayPause}
-                  className="w-10 h-10 flex items-center justify-center bg-[#00A884] dark:bg-[#00A884] rounded-full text-white hover:bg-[#00A884]/90 transition-colors"
-                >
-                  {isPlaying ? (
-                    <Pause className="h-5 w-5" />
-                  ) : (
-                    <Play className="h-5 w-5 ml-0.5" />
-                  )}
-                </button>
-                <div className="flex-1">
-                  <div className="w-full h-[4px] bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-white dark:bg-white"
-                      style={{ width: `${(currentTime / duration) * 100}%` }}
-                    />
-                  </div>
+            <div className="flex items-center gap-2 min-w-[180px] max-w-[280px] py-1">
+              <button
+                onClick={handlePlayPause}
+                className="w-10 h-10 flex items-center justify-center bg-[#00A884] dark:bg-[#00A884] rounded-full text-white hover:bg-[#00A884]/90 transition-colors"
+              >
+                {isPlaying ? (
+                  <Pause className="h-5 w-5" />
+                ) : (
+                  <Play className="h-5 w-5 ml-0.5" />
+                )}
+              </button>
+              <div className="flex-1">
+                <div className="w-full h-[4px] bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-white dark:bg-white"
+                    style={{ width: `${(currentTime / duration) * 100}%` }}
+                  />
                 </div>
-                <span className="text-xs text-gray-300 min-w-[40px]">
-                  {formatTime(currentTime)}
-                </span>
-                <audio
-                  ref={audioRef}
-                  src={message.content}
-                  onTimeUpdate={handleTimeUpdate}
-                  onLoadedMetadata={handleLoadedMetadata}
-                  onEnded={() => setIsPlaying(false)}
-                  className="hidden"
-                />
               </div>
-              {message.metadata?.transcription && (
-                <div className="mt-2 text-xs text-gray-300 italic">
-                  {message.metadata.transcription}
-                </div>
-              )}
-            </>
+              <span className="text-xs text-gray-300 min-w-[40px]">
+                {formatTime(currentTime)}
+              </span>
+              <audio
+                ref={audioRef}
+                src={message.content}
+                onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={handleLoadedMetadata}
+                onEnded={() => setIsPlaying(false)}
+                className="hidden"
+              />
+            </div>
           )}
           <span className="text-[11px] text-gray-300 float-right ml-2 mt-1">
             {format(new Date(message.timestamp), "h:mm a", { locale: es })}
