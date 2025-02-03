@@ -21,10 +21,7 @@ export interface Message {
       longitude: number;
       name?: string;
     };
-    quickReplies?: {
-      text: string;
-      action: string;
-    }[];
+    quickReplies?: string[];
     qr?: {
       data: string;
       title?: string;
@@ -62,4 +59,6 @@ export interface Chatbot {
   name: string;
   icon_url?: string;
   description?: string;
+  welcome_message?: string;
+  quick_questions?: string[];
 }
