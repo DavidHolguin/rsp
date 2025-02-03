@@ -36,6 +36,15 @@ export interface Message {
   };
 }
 
+export interface Chatbot {
+  id: string;
+  name: string;
+  icon_url?: string;
+  description?: string;
+  welcome_message?: string;
+  quick_questions?: string[];
+}
+
 export interface ChatAnalytics {
   interactionTime: number;
   messageCount: number;
@@ -53,12 +62,4 @@ export interface Lead {
   analytics: ChatAnalytics;
   createdAt: number;
   lastActive: number;
-}
-
-export interface Chatbot {
-  name: string;
-  icon_url?: string;
-  description?: string;
-  welcome_message?: string;
-  quick_questions?: string[];
 }

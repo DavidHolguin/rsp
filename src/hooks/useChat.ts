@@ -18,11 +18,14 @@ export const useChat = (chatbotId: string, currentLead: { id: string; name: stri
     const now = new Date();
     const zonedDate = toZonedTime(now, timeZone);
     const hour = zonedDate.getHours();
+    
     let greeting = "Buenos días";
     if (hour >= 12 && hour < 18) greeting = "Buenas tardes";
     if (hour >= 18) greeting = "Buenas noches";
 
-    const message = welcomeMessage || `${greeting}, ${name}. ¿En qué puedo ayudarte hoy?`;
+    const message = welcomeMessage 
+      ? `${greeting}, ${name}. ${welcomeMessage}`
+      : `${greeting}, ${name}. ¿En qué puedo ayudarte hoy?`;
 
     setMessages([{
       id: "greeting",
