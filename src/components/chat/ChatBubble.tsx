@@ -62,7 +62,7 @@ export const ChatBubble = ({ message, isAgent = false, onQuickReplyClick }: Chat
             <>
               <ReactMarkdown 
                 remarkPlugins={[remarkGfm]}
-                className="prose dark:prose-invert max-w-none prose-sm"
+                className="prose dark:prose-invert max-w-none prose-sm prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-strong:text-white prose-em:text-gray-300"
               >
                 {message.content}
               </ReactMarkdown>
