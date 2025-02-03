@@ -3,6 +3,7 @@ import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { Chatbot } from "@/types/chat";
 import { useToast } from "@/components/ui/use-toast";
+import { toZonedTime } from 'date-fns-tz';
 
 export const useChatbot = (chatbotId: string) => {
   const [chatbot, setChatbot] = useState<Chatbot | null>(null);
@@ -28,7 +29,6 @@ export const useChatbot = (chatbotId: string) => {
       }
 
       if (data) {
-        // Cast the quick_questions to string[] since we know it's stored as a string array in Supabase
         const chatbotData: Chatbot = {
           id: data.id,
           name: data.name,
@@ -36,7 +36,7 @@ export const useChatbot = (chatbotId: string) => {
           description: data.description,
           welcome_message: data.welcome_message,
           quick_questions: Array.isArray(data.quick_questions) 
-            ? data.quick_questions.map(q => String(q))  // Ensure each item is a string
+            ? data.quick_questions.map(q => String(q))
             : []
         };
         
