@@ -35,7 +35,9 @@ export const useChatbot = (chatbotId: string) => {
           icon_url: data.icon_url,
           description: data.description,
           welcome_message: data.welcome_message,
-          quick_questions: Array.isArray(data.quick_questions) ? data.quick_questions : []
+          quick_questions: Array.isArray(data.quick_questions) 
+            ? data.quick_questions.map(q => String(q))  // Ensure each item is a string
+            : []
         };
         
         setChatbot(chatbotData);
