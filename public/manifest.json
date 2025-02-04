@@ -1,6 +1,6 @@
 {
-  "name": "Chat Asistente Virtual",
-  "short_name": "Chat",
+  "name": "Chatbot Quimbayas",
+  "short_name": "Quimbayas",
   "description": "Asistente virtual para consultas y reservas",
   "start_url": "/",
   "display": "standalone",
