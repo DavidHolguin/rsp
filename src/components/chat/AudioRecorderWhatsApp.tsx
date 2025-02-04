@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Mic, X, ChevronLeft } from "lucide-react";
+import { Mic, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
@@ -21,6 +21,7 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
   const startYRef = useRef<number>(0);
   const startXRef = useRef<number>(0);
   const timerRef = useRef<number>();
+  const touchStartTimeRef = useRef<number>(0);
 
   const requestPermission = async () => {
     try {
@@ -39,17 +40,8 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
 
   const startRecording = async () => {
     try {
-      if (hasPermission === null) {
-        await requestPermission();
-        return;
-      }
-
       if (!hasPermission) {
-        toast({
-          title: "Sin acceso al micrófono",
-          description: "Por favor, habilita el acceso al micrófono en la configuración de tu navegador",
-          variant: "destructive",
-        });
+        await requestPermission();
         return;
       }
 
@@ -80,16 +72,19 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
     }
   };
 
-  const stopRecording = async () => {
+  const stopRecording = async (shouldSave: boolean = true) => {
     if (!mediaRecorderRef.current) return;
 
     return new Promise<void>((resolve) => {
       const mediaRecorder = mediaRecorderRef.current!;
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        if (shouldSave) {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          await processAndSendAudio(audioBlob);
+        }
         setIsRecording(false);
         clearInterval(timerRef.current);
-        await processAndSendAudio(audioBlob);
+        setRecordingTime(0);
         resolve();
       };
       mediaRecorder.stop();
@@ -98,6 +93,15 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
   };
 
   const processAndSendAudio = async (audioBlob: Blob) => {
+    if (recordingTime < 1) {
+      toast({
+        title: "Grabación muy corta",
+        description: "Mantén presionado más tiempo para grabar un mensaje",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsProcessing(true);
     try {
       const reader = new FileReader();
@@ -112,7 +116,6 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
         if (error) throw error;
         
         onAudioRecorded(audioBlob, data.text);
-        setRecordingTime(0);
       };
       
       reader.readAsDataURL(audioBlob);
@@ -128,14 +131,22 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
     }
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
+  const handleTouchStart = async (e: React.TouchEvent) => {
+    e.preventDefault();
     startYRef.current = e.touches[0].clientY;
     startXRef.current = e.touches[0].clientX;
-    startRecording();
+    touchStartTimeRef.current = Date.now();
+    
+    if (hasPermission === null) {
+      await requestPermission();
+    } else if (hasPermission) {
+      startRecording();
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isRecording) return;
+    
     const currentX = e.touches[0].clientX;
     const diffX = startXRef.current - currentX;
     setIsDragging(diffX > 50);
@@ -143,26 +154,14 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
 
   const handleTouchEnd = async () => {
     if (!isRecording) return;
+    
     if (isDragging) {
-      mediaRecorderRef.current?.stream.getTracks().forEach(track => track.stop());
-      setIsRecording(false);
-      clearInterval(timerRef.current);
-      setRecordingTime(0);
+      await stopRecording(false);
       onCancel();
     } else {
-      await stopRecording();
+      await stopRecording(true);
     }
     setIsDragging(false);
-  };
-
-  const handleMouseDown = () => {
-    startRecording();
-  };
-
-  const handleMouseUp = async () => {
-    if (isRecording) {
-      await stopRecording();
-    }
   };
 
   const formatTime = (seconds: number) => {
@@ -186,9 +185,6 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
         className={cn(
           "transition-all duration-200 flex items-center justify-center",
           isRecording 
