@@ -28,24 +28,30 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setHasPermission(true);
       stream.getTracks().forEach(track => track.stop());
+      return true;
     } catch (error) {
+      console.error("Error requesting permission:", error);
       setHasPermission(false);
       toast({
         title: "Error de permisos",
         description: "Necesitamos acceso al micrófono para grabar audio",
         variant: "destructive",
       });
+      return false;
     }
   };
 
   const startRecording = async () => {
     try {
+      console.log("Starting recording...");
       if (!hasPermission) {
-        await requestPermission();
-        return;
+        const permissionGranted = await requestPermission();
+        if (!permissionGranted) return;
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log("Got media stream:", stream);
+      
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
@@ -58,12 +64,13 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
 
       mediaRecorder.start();
       setIsRecording(true);
+      console.log("Recording started");
       
       timerRef.current = window.setInterval(() => {
         setRecordingTime((prev) => prev + 1);
       }, 1000);
     } catch (error) {
-      console.error("Error accessing microphone:", error);
+      console.error("Error starting recording:", error);
       toast({
         title: "Error",
         description: "No se pudo acceder al micrófono",
@@ -74,6 +81,7 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
 
   const stopRecording = async (shouldSave: boolean = true) => {
     if (!mediaRecorderRef.current) return;
+    console.log("Stopping recording...");
 
     return new Promise<void>((resolve) => {
       const mediaRecorder = mediaRecorderRef.current!;
@@ -133,14 +141,18 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
 
   const handleTouchStart = async (e: React.TouchEvent) => {
     e.preventDefault();
+    console.log("Touch start event triggered");
     startYRef.current = e.touches[0].clientY;
     startXRef.current = e.touches[0].clientX;
     touchStartTimeRef.current = Date.now();
     
     if (hasPermission === null) {
-      await requestPermission();
+      const permissionGranted = await requestPermission();
+      if (permissionGranted) {
+        await startRecording();
+      }
     } else if (hasPermission) {
-      startRecording();
+      await startRecording();
     }
   };
 
@@ -154,6 +166,7 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
 
   const handleTouchEnd = async () => {
     if (!isRecording) return;
+    console.log("Touch end event triggered");
     
     if (isDragging) {
       await stopRecording(false);
