@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import { Play, Pause } from "lucide-react";
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { ImageGallery } from "./ImageGallery";
 
 interface ChatBubbleProps {
   message: Message;
@@ -67,27 +68,11 @@ export const ChatBubble = ({ message, isAgent = false, onQuickReplyClick }: Chat
                 {message.content}
               </ReactMarkdown>
               {message.metadata?.gallery?.images && (
-                <div className="mt-2 space-y-1">
-                  <div className={`grid gap-1 ${
-                    message.metadata.gallery.images.length === 1 ? 'grid-cols-1' : 
-                    message.metadata.gallery.images.length === 2 ? 'grid-cols-2' :
-                    'grid-cols-3'
-                  }`}>
-                    {message.metadata.gallery.images.map((image: any, index: number) => (
-                      <div 
-                        key={index}
-                        className={`relative overflow-hidden rounded-lg ${
-                          message.metadata.gallery.images.length === 1 ? 'aspect-video' : 'aspect-square'
-                        }`}
-                      >
-                        <img
-                          src={image.url}
-                          alt={image.description || `Image ${index + 1}`}
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                    ))}
-                  </div>
+                <div className="mt-2">
+                  <ImageGallery 
+                    images={message.metadata.gallery.images}
+                    layout={message.metadata.gallery.layout || "grid"}
+                  />
                 </div>
               )}
               {message.metadata?.quickReplies && message.sender === "agent" && (

@@ -243,6 +243,8 @@ export type Database = {
         Row: {
           booking_id: string | null
           created_at: string | null
+          guest_age: number | null
+          guest_type: string | null
           id: string
           item_id: string
           item_type: string
@@ -253,6 +255,8 @@ export type Database = {
         Insert: {
           booking_id?: string | null
           created_at?: string | null
+          guest_age?: number | null
+          guest_type?: string | null
           id?: string
           item_id: string
           item_type: string
@@ -263,6 +267,8 @@ export type Database = {
         Update: {
           booking_id?: string | null
           created_at?: string | null
+          guest_age?: number | null
+          guest_type?: string | null
           id?: string
           item_id?: string
           item_type?: string
@@ -320,11 +326,14 @@ export type Database = {
       }
       bookings: {
         Row: {
+          adults_count: number | null
           agency_id: string | null
+          babies_count: number | null
           booking_date: string
           booking_type: string
           check_in: string | null
           check_out: string | null
+          children_count: number | null
           created_at: string | null
           guest_comments: string | null
           guest_requirements: string | null
@@ -332,17 +341,21 @@ export type Database = {
           id: string
           lead_id: string | null
           metadata: Json | null
+          room_id: string | null
           source: string | null
           status: string | null
           total_amount: number
           updated_at: string | null
         }
         Insert: {
+          adults_count?: number | null
           agency_id?: string | null
+          babies_count?: number | null
           booking_date: string
           booking_type: string
           check_in?: string | null
           check_out?: string | null
+          children_count?: number | null
           created_at?: string | null
           guest_comments?: string | null
           guest_requirements?: string | null
@@ -350,17 +363,21 @@ export type Database = {
           id?: string
           lead_id?: string | null
           metadata?: Json | null
+          room_id?: string | null
           source?: string | null
           status?: string | null
           total_amount: number
           updated_at?: string | null
         }
         Update: {
+          adults_count?: number | null
           agency_id?: string | null
+          babies_count?: number | null
           booking_date?: string
           booking_type?: string
           check_in?: string | null
           check_out?: string | null
+          children_count?: number | null
           created_at?: string | null
           guest_comments?: string | null
           guest_requirements?: string | null
@@ -368,6 +385,7 @@ export type Database = {
           id?: string
           lead_id?: string | null
           metadata?: Json | null
+          room_id?: string | null
           source?: string | null
           status?: string | null
           total_amount?: number
@@ -393,6 +411,13 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
             referencedColumns: ["id"]
           },
         ]
@@ -579,16 +604,21 @@ export type Database = {
           configuration: Json | null
           context: string | null
           context_structure: Json | null
+          context_weights: Json | null
           created_at: string | null
           description: string | null
           external_channels: Json | null
+          forbidden_behaviors: string[] | null
           icon_url: string | null
           id: string
           is_active: boolean | null
           landing_page_id: string | null
           name: string
+          negative_examples: Json | null
           personality: string | null
           quick_questions: Json | null
+          response_structure: Json | null
+          tone_by_message_type: Json | null
           updated_at: string | null
           use_emojis: boolean | null
           voice_enabled: boolean | null
@@ -599,16 +629,21 @@ export type Database = {
           configuration?: Json | null
           context?: string | null
           context_structure?: Json | null
+          context_weights?: Json | null
           created_at?: string | null
           description?: string | null
           external_channels?: Json | null
+          forbidden_behaviors?: string[] | null
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
           landing_page_id?: string | null
           name: string
+          negative_examples?: Json | null
           personality?: string | null
           quick_questions?: Json | null
+          response_structure?: Json | null
+          tone_by_message_type?: Json | null
           updated_at?: string | null
           use_emojis?: boolean | null
           voice_enabled?: boolean | null
@@ -619,16 +654,21 @@ export type Database = {
           configuration?: Json | null
           context?: string | null
           context_structure?: Json | null
+          context_weights?: Json | null
           created_at?: string | null
           description?: string | null
           external_channels?: Json | null
+          forbidden_behaviors?: string[] | null
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
           landing_page_id?: string | null
           name?: string
+          negative_examples?: Json | null
           personality?: string | null
           quick_questions?: Json | null
+          response_structure?: Json | null
+          tone_by_message_type?: Json | null
           updated_at?: string | null
           use_emojis?: boolean | null
           voice_enabled?: boolean | null
@@ -1645,97 +1685,22 @@ export type Database = {
           },
         ]
       }
-      room_type_amenities: {
-        Row: {
-          amenity_id: string | null
-          created_at: string | null
-          id: string
-          room_type_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          amenity_id?: string | null
-          created_at?: string | null
-          id?: string
-          room_type_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          amenity_id?: string | null
-          created_at?: string | null
-          id?: string
-          room_type_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "room_type_amenities_amenity_id_fkey"
-            columns: ["amenity_id"]
-            isOneToOne: false
-            referencedRelation: "amenities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "room_type_amenities_room_type_id_fkey"
-            columns: ["room_type_id"]
-            isOneToOne: false
-            referencedRelation: "room_types"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      room_type_images: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          id: string
-          is_cover: boolean | null
-          position: number | null
-          room_type_id: string | null
-          updated_at: string | null
-          url: string
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_cover?: boolean | null
-          position?: number | null
-          room_type_id?: string | null
-          updated_at?: string | null
-          url: string
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_cover?: boolean | null
-          position?: number | null
-          room_type_id?: string | null
-          updated_at?: string | null
-          url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "room_type_images_room_type_id_fkey"
-            columns: ["room_type_id"]
-            isOneToOne: false
-            referencedRelation: "room_types"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       room_types: {
         Row: {
           additional_person_price: number | null
+          adult_age_start: number | null
+          baby_age_end: number | null
           base_price: number | null
           base_price_per_room: number | null
           bathrooms: number | null
           beds: number | null
+          child_age_end: number | null
+          child_age_start: number | null
           created_at: string | null
           description: string | null
           hotel_id: string | null
           id: string
+          max_additional_guests: number | null
           max_occupancy: number
           min_occupancy: number | null
           name: string
@@ -1747,14 +1712,19 @@ export type Database = {
         }
         Insert: {
           additional_person_price?: number | null
+          adult_age_start?: number | null
+          baby_age_end?: number | null
           base_price?: number | null
           base_price_per_room?: number | null
           bathrooms?: number | null
           beds?: number | null
+          child_age_end?: number | null
+          child_age_start?: number | null
           created_at?: string | null
           description?: string | null
           hotel_id?: string | null
           id?: string
+          max_additional_guests?: number | null
           max_occupancy: number
           min_occupancy?: number | null
           name: string
@@ -1766,14 +1736,19 @@ export type Database = {
         }
         Update: {
           additional_person_price?: number | null
+          adult_age_start?: number | null
+          baby_age_end?: number | null
           base_price?: number | null
           base_price_per_room?: number | null
           bathrooms?: number | null
           beds?: number | null
+          child_age_end?: number | null
+          child_age_start?: number | null
           created_at?: string | null
           description?: string | null
           hotel_id?: string | null
           id?: string
+          max_additional_guests?: number | null
           max_occupancy?: number
           min_occupancy?: number | null
           name?: string
@@ -1801,10 +1776,7 @@ export type Database = {
           floor: string | null
           gallery: Json | null
           id: string
-          max_occupancy: number | null
-          min_occupancy: number | null
           name: string | null
-          price: number | null
           room_number: string
           room_type_id: string | null
           status: string | null
@@ -1817,10 +1789,7 @@ export type Database = {
           floor?: string | null
           gallery?: Json | null
           id?: string
-          max_occupancy?: number | null
-          min_occupancy?: number | null
           name?: string | null
-          price?: number | null
           room_number: string
           room_type_id?: string | null
           status?: string | null
@@ -1833,10 +1802,7 @@ export type Database = {
           floor?: string | null
           gallery?: Json | null
           id?: string
-          max_occupancy?: number | null
-          min_occupancy?: number | null
           name?: string | null
-          price?: number | null
           room_number?: string
           room_type_id?: string | null
           status?: string | null
@@ -1966,6 +1932,17 @@ export type Database = {
         }
         Returns: undefined
       }
+      calculate_booking_total: {
+        Args: {
+          p_room_id: string
+          p_adults: number
+          p_children: number
+          p_babies: number
+          p_check_in: string
+          p_check_out: string
+        }
+        Returns: number
+      }
       calculate_lead_score: {
         Args: {
           p_lead_id: string
@@ -2007,6 +1984,14 @@ export type Database = {
           available_rooms: number
           total_rooms: number
         }[]
+      }
+      check_specific_room_availability: {
+        Args: {
+          p_room_id: string
+          p_check_in: string
+          p_check_out: string
+        }
+        Returns: boolean
       }
       check_ticket_availability: {
         Args: {
