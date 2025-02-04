@@ -25,9 +25,11 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
 
   const requestPermission = async () => {
     try {
+      console.log("Requesting microphone permission...");
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setHasPermission(true);
       stream.getTracks().forEach(track => track.stop());
+      console.log("Permission granted!");
       return true;
     } catch (error) {
       console.error("Error requesting permission:", error);
@@ -139,11 +141,20 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
     }
   };
 
-  const handleTouchStart = async (e: React.TouchEvent) => {
+  const handleStart = async (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
-    console.log("Touch start event triggered");
-    startYRef.current = e.touches[0].clientY;
-    startXRef.current = e.touches[0].clientX;
+    console.log("Start event triggered");
+    
+    if (e.type === 'touchstart') {
+      const touch = (e as React.TouchEvent).touches[0];
+      startYRef.current = touch.clientY;
+      startXRef.current = touch.clientX;
+    } else {
+      const mouse = e as React.MouseEvent;
+      startYRef.current = mouse.clientY;
+      startXRef.current = mouse.clientX;
+    }
+    
     touchStartTimeRef.current = Date.now();
     
     if (hasPermission === null) {
@@ -156,17 +167,23 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
     }
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
+  const handleMove = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isRecording) return;
     
-    const currentX = e.touches[0].clientX;
+    let currentX: number;
+    if (e.type === 'touchmove') {
+      currentX = (e as React.TouchEvent).touches[0].clientX;
+    } else {
+      currentX = (e as React.MouseEvent).clientX;
+    }
+    
     const diffX = startXRef.current - currentX;
     setIsDragging(diffX > 50);
   };
 
-  const handleTouchEnd = async () => {
+  const handleEnd = async () => {
     if (!isRecording) return;
-    console.log("Touch end event triggered");
+    console.log("End event triggered");
     
     if (isDragging) {
       await stopRecording(false);
@@ -195,9 +212,13 @@ export const AudioRecorderWhatsApp = ({ onAudioRecorded, onCancel }: AudioRecord
   return (
     <div className="relative">
       <button
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleStart}
+        onMouseMove={handleMove}
+        onMouseUp={handleEnd}
+        onMouseLeave={handleEnd}
+        onTouchStart={handleStart}
+        onTouchMove={handleMove}
+        onTouchEnd={handleEnd}
         className={cn(
           "transition-all duration-200 flex items-center justify-center",
           isRecording 
