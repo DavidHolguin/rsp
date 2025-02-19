@@ -67,7 +67,7 @@ export const useChat = (chatbotId: string, currentLead: { id: string; name: stri
       const response = await fetch(
         `${API_BASE_URL}/api/v1/send-message?` +
         new URLSearchParams({
-          agency_id: "157597a6-8ba8-4d8e-8bd9-a8b325c8b05b",
+          agency_id: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11", // Actualizado
           chatbot_id: chatbotId,
           message: inputValue,
           lead_id: currentLead.id,
