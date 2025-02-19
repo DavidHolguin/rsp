@@ -78,7 +78,7 @@ export const OnboardingModal = ({ onSubmit }: OnboardingModalProps) => {
       const { error: convError } = await supabase
         .from("chat_conversations")
         .insert({
-          chatbot_id: "2941bb4a-cdf4-4677-8e0b-d1def860728d",
+          chatbot_id: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9", // Actualizado
           lead_id: leadData.id,
           title: `Conversación con ${name}`
         });

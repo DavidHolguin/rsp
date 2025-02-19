@@ -164,8 +164,8 @@ export type Database = {
       }
       booking_engines: {
         Row: {
-          agency_id: string | null
-          chatbot_id: string | null
+          agency_id: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
+          chatbot_id: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9" // Actualizado
           checkin_config: Json | null
           configuration: Json | null
           created_at: string | null
@@ -179,8 +179,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          agency_id?: string | null
-          chatbot_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
+          chatbot_id?: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9" // Actualizado
           checkin_config?: Json | null
           configuration?: Json | null
           created_at?: string | null
@@ -194,8 +194,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          agency_id?: string | null
-          chatbot_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
+          chatbot_id?: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9" // Actualizado
           checkin_config?: Json | null
           configuration?: Json | null
           created_at?: string | null
@@ -424,7 +424,7 @@ export type Database = {
       }
       chat_conversations: {
         Row: {
-          chatbot_id: string | null
+          chatbot_id: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9" // Actualizado
           created_at: string | null
           id: string
           lead_id: string | null
@@ -432,7 +432,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          chatbot_id?: string | null
+          chatbot_id?: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9" // Actualizado
           created_at?: string | null
           id?: string
           lead_id?: string | null
@@ -440,7 +440,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          chatbot_id?: string | null
+          chatbot_id?: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9" // Actualizado
           created_at?: string | null
           id?: string
           lead_id?: string | null
@@ -466,7 +466,7 @@ export type Database = {
       }
       chat_messages: {
         Row: {
-          chatbot_id: string | null
+          chatbot_id: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9" // Actualizado
           conversation_id: string | null
           created_at: string | null
           id: string
@@ -476,7 +476,7 @@ export type Database = {
           metadata: Json | null
         }
         Insert: {
-          chatbot_id?: string | null
+          chatbot_id?: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9" // Actualizado
           conversation_id?: string | null
           created_at?: string | null
           id?: string
@@ -486,7 +486,7 @@ export type Database = {
           metadata?: Json | null
         }
         Update: {
-          chatbot_id?: string | null
+          chatbot_id?: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9" // Actualizado
           conversation_id?: string | null
           created_at?: string | null
           id?: string
@@ -521,7 +521,7 @@ export type Database = {
       }
       chatbot_memories: {
         Row: {
-          chatbot_id: string
+          chatbot_id: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9" // Actualizado
           created_at: string | null
           expires_at: string | null
           id: string
@@ -533,7 +533,7 @@ export type Database = {
           value: string
         }
         Insert: {
-          chatbot_id: string
+          chatbot_id: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9" // Actualizado
           created_at?: string | null
           expires_at?: string | null
           id?: string
@@ -545,7 +545,7 @@ export type Database = {
           value: string
         }
         Update: {
-          chatbot_id?: string
+          chatbot_id?: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9" // Actualizado
           created_at?: string | null
           expires_at?: string | null
           id?: string
@@ -568,21 +568,21 @@ export type Database = {
       }
       chatbot_metrics: {
         Row: {
-          chatbot_id: string
+          chatbot_id: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9" // Actualizado
           id: string
           message_length: number
           processing_time: number
           timestamp: string | null
         }
         Insert: {
-          chatbot_id: string
+          chatbot_id: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9" // Actualizado
           id?: string
           message_length: number
           processing_time: number
           timestamp?: string | null
         }
         Update: {
-          chatbot_id?: string
+          chatbot_id?: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9" // Actualizado
           id?: string
           message_length?: number
           processing_time?: number
@@ -600,7 +600,7 @@ export type Database = {
       }
       chatbots: {
         Row: {
-          agency_id: string | null
+          agency_id: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           configuration: Json | null
           context: string | null
           context_structure: Json | null
@@ -625,7 +625,7 @@ export type Database = {
           welcome_message: string | null
         }
         Insert: {
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           configuration?: Json | null
           context?: string | null
           context_structure?: Json | null
@@ -650,7 +650,7 @@ export type Database = {
           welcome_message?: string | null
         }
         Update: {
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           configuration?: Json | null
           context?: string | null
           context_structure?: Json | null
@@ -734,7 +734,7 @@ export type Database = {
       }
       destinations: {
         Row: {
-          agency_id: string | null
+          agency_id: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           attractions: string[] | null
           city: string | null
           country: string | null
@@ -748,7 +748,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           attractions?: string[] | null
           city?: string | null
           country?: string | null
@@ -762,7 +762,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           attractions?: string[] | null
           city?: string | null
           country?: string | null
@@ -883,7 +883,7 @@ export type Database = {
       hotels: {
         Row: {
           address: string | null
-          agency_id: string | null
+          agency_id: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           amenities: string[] | null
           city: string | null
           country: string | null
@@ -899,7 +899,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           amenities?: string[] | null
           city?: string | null
           country?: string | null
@@ -915,7 +915,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           amenities?: string[] | null
           city?: string | null
           country?: string | null
@@ -975,8 +975,8 @@ export type Database = {
       }
       integration_configs: {
         Row: {
-          agency_id: string | null
-          chatbot_id: string | null
+          agency_id: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
+          chatbot_id: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9" // Actualizado
           config: Json | null
           created_at: string
           id: string
@@ -985,8 +985,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          agency_id?: string | null
-          chatbot_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
+          chatbot_id?: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9" // Actualizado
           config?: Json | null
           created_at?: string
           id?: string
@@ -995,8 +995,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          agency_id?: string | null
-          chatbot_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
+          chatbot_id?: "f137fdf2-f026-4cf4-ae03-b16b8d9837a9" // Actualizado
           config?: Json | null
           created_at?: string
           id?: string
@@ -1023,21 +1023,21 @@ export type Database = {
       }
       landing_footer_settings: {
         Row: {
-          agency_id: string | null
+          agency_id: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           content: Json | null
           created_at: string | null
           id: string
           updated_at: string | null
         }
         Insert: {
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           content?: Json | null
           created_at?: string | null
           id?: string
           updated_at?: string | null
         }
         Update: {
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           content?: Json | null
           created_at?: string | null
           id?: string
@@ -1100,7 +1100,7 @@ export type Database = {
       }
       landing_pages: {
         Row: {
-          agency_id: string | null
+          agency_id: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           components: Json | null
           cover_url: string | null
           created_at: string | null
@@ -1117,7 +1117,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           components?: Json | null
           cover_url?: string | null
           created_at?: string | null
@@ -1134,7 +1134,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           components?: Json | null
           cover_url?: string | null
           created_at?: string | null
@@ -1254,7 +1254,7 @@ export type Database = {
       }
       lead_stages: {
         Row: {
-          agency_id: string | null
+          agency_id: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           color: string
           created_at: string | null
           description: string | null
@@ -1265,7 +1265,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           color?: string
           created_at?: string | null
           description?: string | null
@@ -1276,7 +1276,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           color?: string
           created_at?: string | null
           description?: string | null
@@ -1368,7 +1368,7 @@ export type Database = {
       leads: {
         Row: {
           active: boolean | null
-          agency_id: string | null
+          agency_id: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           created_at: string | null
           email: string | null
           has_completed_onboarding: boolean | null
@@ -1387,7 +1387,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           created_at?: string | null
           email?: string | null
           has_completed_onboarding?: boolean | null
@@ -1406,7 +1406,7 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           created_at?: string | null
           email?: string | null
           has_completed_onboarding?: boolean | null
@@ -1480,7 +1480,7 @@ export type Database = {
       }
       packages: {
         Row: {
-          agency_id: string | null
+          agency_id: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           cover_url: string | null
           created_at: string | null
           description: string | null
@@ -1494,7 +1494,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           cover_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -1508,7 +1508,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           cover_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -1561,7 +1561,7 @@ export type Database = {
       }
       quote_form_templates: {
         Row: {
-          agency_id: string | null
+          agency_id: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           created_at: string | null
           description: string | null
           form_fields: Json | null
@@ -1571,7 +1571,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           created_at?: string | null
           description?: string | null
           form_fields?: Json | null
@@ -1581,7 +1581,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           created_at?: string | null
           description?: string | null
           form_fields?: Json | null
@@ -1820,7 +1820,7 @@ export type Database = {
       }
       theme_parks: {
         Row: {
-          agency_id: string | null
+          agency_id: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           created_at: string | null
           description: string | null
           gallery: Json | null
@@ -1832,7 +1832,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           created_at?: string | null
           description?: string | null
           gallery?: Json | null
@@ -1844,7 +1844,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          agency_id?: string | null
+          agency_id?: "e5a2267c-52ed-4f82-a0cc-7c62bf849b11" // Actualizado
           created_at?: string | null
           description?: string | null
           gallery?: Json | null

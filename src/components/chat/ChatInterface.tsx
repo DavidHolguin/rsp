@@ -11,7 +11,7 @@ import { useChatbot } from "@/hooks/useChatbot";
 import { useChat } from "@/hooks/useChat";
 import { useLeadTracking } from "@/hooks/useLeadTracking";
 
-const CHATBOT_ID = "2941bb4a-cdf4-4677-8e0b-d1def860728d";
+const CHATBOT_ID = "f137fdf2-f026-4cf4-ae03-b16b8d9837a9"; // Actualizado
 const AGENCY_ID = "157597a6-8ba8-4d8e-8bd9-a8b325c8b05b";
 
 export const ChatInterface = () => {
